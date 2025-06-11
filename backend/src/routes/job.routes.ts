@@ -17,10 +17,14 @@ const router = Router();
 
 // Public routes
 router.get('/', getAllJobs);
+// Job suggestions (protected)
+router.get('/suggestions',authMiddleware, getJobSuggestions);
 router.get('/:id', getJobById);
 
 // Protected routes
 router.use(authMiddleware);
+
+
 
 // Employer only routes
 router.post('/', employerOnly, createJob);
@@ -31,7 +35,6 @@ router.get('/:id/contracts', employerOnly, getJobContracts);
 
 // Student routes
 router.post('/:id/apply', applyForJob);
-router.get('/suggestions', getJobSuggestions);
 
 //for ai 
 // router.get('/ai/job-recommendations', aiController.getJobRecommendations);
