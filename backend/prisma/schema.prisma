@@ -18,15 +18,18 @@ model User {
   skills            String[]
   tokens            Int            @default(0)
   badges            UserBadge[]
-  reviews           Review[]       @relation("TargetReviews")
   workshopsHosted   Workshop[]     @relation("HostedWorkshops")
   workshopsAttended UserWorkshop[]
   jobPosts          Job[]          @relation("EmployerJobs")
   applications      Application[]  @relation("StudentApplications")
-  contracts         Contract[]     @relation("UserContracts")
+  userContracts         Contract[]     @relation("UserContracts")
+  employerContracts     Contract[] @relation("EmployerContracts")
+  reviewsGiven      Review[]       @relation("Reviewer")
+  reviewsReceived   Review[]       @relation("ReviewTarget")
   createdAt         DateTime       @default(now())
-  Contract          Contract[]
-  Review            Review[]
+
+  @@index([skills])
+  @@index([tokens])
 }
 
 model UserBadge {
@@ -45,6 +48,7 @@ model UserWorkshop {
   userId     String   @db.ObjectId
   workshop   Workshop @relation(fields: [workshopId], references: [id])
   workshopId String   @db.ObjectId
+  attendedAt DateTime @default(now())
 
   @@unique([userId, workshopId])
 }
@@ -60,7 +64,19 @@ model Badge {
   name        String
   description String?
   iconUrl     String?
+  tier        BadgeTier
   users       UserBadge[]
+
+  @@index([name])
+  @@index([tier])
+}
+
+enum BadgeTier {
+  SHIKSHARTHI
+  SIKSHA_SEVI
+  GURU
+  ACHARYA
+  UTSAAHI_INTERN
 }
 
 model Job {
@@ -74,7 +90,11 @@ model Job {
   employerId     String        @db.ObjectId
   applications   Application[]
   contracts      Contract[]
+  reviews        Review[]      @relation("JobReviews")
   createdAt      DateTime      @default(now())
+
+  @@index([requiredSkills])
+  @@index([isVerified])
 }
 
 model Application {
@@ -86,6 +106,10 @@ model Application {
   proposal  String
   status    AppStatus @default(PENDING)
   createdAt DateTime  @default(now())
+
+  @@index([jobId])
+  @@index([studentId])
+  @@index([status])
 }
 
 enum AppStatus {
@@ -103,21 +127,54 @@ model Workshop {
   host         User           @relation("HostedWorkshops", fields: [hostId], references: [id])
   hostId       String         @db.ObjectId
   attendees    UserWorkshop[]
+  reviews      Review[]       @relation("WorkshopReviews")
   tokensEarned Int            @default(0)
+  skillsTaught String[]
   createdAt    DateTime       @default(now())
+
+  @@index([hostId])
+  @@index([skillsTaught])
 }
 
 model Contract {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
   student       User           @relation("UserContracts", fields: [studentId], references: [id])
   studentId     String         @db.ObjectId
-  employer      User           @relation(fields: [employerId], references: [id])
+  employer      User           @relation("EmployerContracts", fields: [employerId], references: [id])
   employerId    String         @db.ObjectId
   job           Job            @relation(fields: [jobId], references: [id])
   jobId         String         @db.ObjectId
   agreementHash String
   status        ContractStatus @default(PENDING)
   createdAt     DateTime       @default(now())
+  completedAt   DateTime?
+
+  @@index([studentId])
+  @@index([employerId])
+  @@index([jobId])
+  @@index([status])
+}
+
+model Review {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  reviewer   User       @relation("Reviewer", fields: [reviewerId], references: [id])
+  reviewerId String     @db.ObjectId
+
+  target     User?      @relation("ReviewTarget", fields: [targetId], references: [id])
+  targetId   String?    @db.ObjectId
+
+  workshop   Workshop?  @relation("WorkshopReviews", fields: [workshopId], references: [id])
+  workshopId String?    @db.ObjectId
+
+  job        Job?       @relation("JobReviews", fields: [jobId], references: [id])
+  jobId      String?    @db.ObjectId
+
+  rating     Int
+  comment    String?
+  createdAt  DateTime   @default(now())
+
+  @@unique([reviewerId, workshopId])
+  @@unique([reviewerId, jobId])
 }
 
 enum ContractStatus {
@@ -125,21 +182,4 @@ enum ContractStatus {
   ACTIVE
   COMPLETED
   DISPUTED
-}
-
-model Review {
-  id         String     @id @default(auto()) @map("_id") @db.ObjectId
-  reviewer   User       @relation(fields: [reviewerId], references: [id])
-  reviewerId String     @db.ObjectId
-  target     User       @relation("TargetReviews", fields: [targetId], references: [id])
-  targetId   String     @db.ObjectId
-  rating     Int
-  comment    String?
-  type       ReviewType @default(JOB)
-  createdAt  DateTime   @default(now())
-}
-
-enum ReviewType {
-  JOB
-  WORKSHOP
 }
