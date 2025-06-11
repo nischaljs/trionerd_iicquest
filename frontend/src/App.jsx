@@ -5,6 +5,8 @@ import ChalkBoxDashboard from "./components/dashboard/ChalkBoxDashboard";
 import Dashboard from "./components/dashboard/Dashboard";
 import MyWorkshop from "./components/dashboard/workshop/MyWorkshop";
 import JoinWorkshops from "./components/dashboard/workshop/JoinWorkshops";
+import LoginForm from "./components/form/LoginForm";
+
 
 const App = () => {
   const router = createBrowserRouter([
@@ -12,6 +14,10 @@ const App = () => {
       path: "/",
       element: <HomePage />,
     },
+   {
+    path:"/login",
+    element:<LoginForm />
+   },
     {
       path: "/dashboard",
       element: <ChalkBoxDashboard />,
