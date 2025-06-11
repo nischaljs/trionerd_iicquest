@@ -301,6 +301,10 @@ export const assignBadgeToUser = async (req: Request, res: Response, next: NextF
 
     const userBadge = await client.userBadge.create({
       data: { userId, badgeId },
+      include: {
+        user: { select: { name: true, role: true } },
+        badge: true,
+      },
     });
 
     res.status(201).json({ status: 'success', data: userBadge });
