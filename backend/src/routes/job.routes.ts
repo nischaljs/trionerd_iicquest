@@ -1,40 +1,35 @@
 import { Router } from 'express';
+import { authMiddleware, employerOnly } from '../middlewares/auth.middleware';
+import {
+  getAllJobs,
+  getJobById,
+  createJob,
+  updateJob,
+  deleteJob,
+  getJobApplications,
+  getJobContracts,
+  getJobSuggestions,
+  applyForJob
+} from '../controllers/job.controller';
 
 const router = Router();
 
-// Get all jobs
-router.get('/', async (req, res) => {
-  // TODO: Implement controller
-});
+// Public routes
+router.get('/', getAllJobs);
+router.get('/:id', getJobById);
 
-// Get job by ID
-router.get('/:id', async (req, res) => {
-  // TODO: Implement controller
-});
+// Protected routes
+router.use(authMiddleware);
 
-// Create new job
-router.post('/', async (req, res) => {
-  // TODO: Implement controller
-});
+// Employer only routes
+router.post('/', employerOnly, createJob);
+router.put('/:id', employerOnly, updateJob);
+router.delete('/:id', employerOnly, deleteJob);
+router.get('/:id/applications', employerOnly, getJobApplications);
+router.get('/:id/contracts', employerOnly, getJobContracts);
 
-// Update job
-router.put('/:id', async (req, res) => {
-  // TODO: Implement controller
-});
-
-// Delete job
-router.delete('/:id', async (req, res) => {
-  // TODO: Implement controller
-});
-
-// Get job applications
-router.get('/:id/applications', async (req, res) => {
-  // TODO: Implement controller
-});
-
-// Get job contracts
-router.get('/:id/contracts', async (req, res) => {
-  // TODO: Implement controller
-});
+// Student routes
+router.post('/:id/apply', applyForJob);
+router.get('/suggestions', getJobSuggestions);
 
 export default router; 
