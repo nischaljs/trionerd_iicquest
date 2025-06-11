@@ -21,6 +21,7 @@ model User {
   workshopsHosted   Workshop[]     @relation("HostedWorkshops")
   workshopsAttended UserWorkshop[]
   jobPosts          Job[]          @relation("EmployerJobs")
+  openSourceProjects OpenSourceProject[] @relation("EmployerOpenSourceProjects")
   applications      Application[]  @relation("StudentApplications")
   userContracts     Contract[]     @relation("UserContracts")
   employerContracts Contract[]     @relation("EmployerContracts")
@@ -207,4 +208,39 @@ enum ContractStatus {
   ACTIVE
   COMPLETED
   DISPUTED
+}
+
+model OpenSourceProject {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  title                 String
+  description           String
+  fullDescription       String
+  techStack            String[]
+  difficulty           String    // Changed from ProjectDifficulty to String
+  goals                String[]
+  githubUrl            String
+  hiringLabel          String?
+  contributionGuidelines String
+  goodFirstIssues      String[]
+  employerId           String   @db.ObjectId
+  employer             User     @relation("EmployerOpenSourceProjects", fields: [employerId], references: [id])
+  status               ProjectStatus @default(OPEN)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([employerId])
+  @@index([status])
+  @@index([difficulty])
+}
+
+enum ProjectStatus {
+  OPEN
+  CLOSED
+  DRAFT
+}
+
+enum ProjectDifficulty {
+  EASY
+  INTERMEDIATE
+  ADVANCED
 }
