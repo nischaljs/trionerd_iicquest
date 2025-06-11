@@ -11,6 +11,7 @@ import {
   getJobSuggestions,
   applyForJob
 } from '../controllers/job.controller';
+// import aiController from '../controllers/aiController';
 
 const router = Router();
 
@@ -31,5 +32,10 @@ router.get('/:id/contracts', employerOnly, getJobContracts);
 // Student routes
 router.post('/:id/apply', applyForJob);
 router.get('/suggestions', getJobSuggestions);
+
+//for ai 
+// router.get('/ai/job-recommendations', aiController.getJobRecommendations);
+// router.get('/jobs/:jobId/top-freelancers', aiController.getTopFreelancersForJob);
+// router.post('/jobs/:jobId/auto-match', aiController.autoMatchJob);
 
 export default router; 
