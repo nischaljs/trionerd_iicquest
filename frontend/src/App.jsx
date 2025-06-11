@@ -8,21 +8,17 @@ import JoinWorkshops from "./components/dashboard/workshop/JoinWorkshops";
 import LoginForm from "./components/form/LoginForm";
 import StudentProfile from "./components/dashboard/profile/StudentProfile";
 
-
 const App = () => {
   const router = createBrowserRouter([
     {
       path: "/",
       element: <HomePage />,
     },
-   {
-    path:"/login",
-    element:<LoginForm />
-   },
-   {
-    path:"/profile",
-    element:<StudentProfile />
-   },
+    {
+      path: "/login",
+      element: <LoginForm />,
+    },
+
     {
       path: "/dashboard",
       element: <ChalkBoxDashboard />,
@@ -38,6 +34,10 @@ const App = () => {
         {
           path: "/dashboard/join-workshops",
           element: <JoinWorkshops />,
+        },
+        {
+          path: "/dashboard/profile",
+          element: <StudentProfile />,
         },
       ],
     },
