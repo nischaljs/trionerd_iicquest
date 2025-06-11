@@ -22,8 +22,8 @@ model User {
   workshopsAttended UserWorkshop[]
   jobPosts          Job[]          @relation("EmployerJobs")
   applications      Application[]  @relation("StudentApplications")
-  userContracts         Contract[]     @relation("UserContracts")
-  employerContracts     Contract[] @relation("EmployerContracts")
+  userContracts     Contract[]     @relation("UserContracts")
+  employerContracts Contract[]     @relation("EmployerContracts")
   reviewsGiven      Review[]       @relation("Reviewer")
   reviewsReceived   Review[]       @relation("ReviewTarget")
   createdAt         DateTime       @default(now())
@@ -80,21 +80,32 @@ enum BadgeTier {
 }
 
 model Job {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
-  title          String
-  description    String
-  requiredSkills String[]
-  tags           String[]
-  isVerified     Boolean       @default(false)
-  employer       User          @relation("EmployerJobs", fields: [employerId], references: [id])
-  employerId     String        @db.ObjectId
-  applications   Application[]
-  contracts      Contract[]
-  reviews        Review[]      @relation("JobReviews")
-  createdAt      DateTime      @default(now())
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  description     String
+  requiredSkills  String[]
+  tags            String[]
+  type            String   // FULL_TIME, PART_TIME, INTERNSHIP
+  location        String
+  status          JobStatus @default(OPEN)
+  isVerified      Boolean  @default(false)
+  employerId      String   @db.ObjectId
+  employer        User     @relation("EmployerJobs", fields: [employerId], references: [id])
+  applications    Application[]
+  contracts       Contract[]
+  reviews         Review[] @relation("JobReviews")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  @@index([requiredSkills])
-  @@index([isVerified])
+  @@index([employerId])
+  @@index([status])
+  @@index([type])
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+  DRAFT
 }
 
 model Application {

@@ -1,6 +1,11 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 
+// Helper function to validate MongoDB ObjectId
+const isValidObjectId = (id: string): boolean => {
+  return /^[0-9a-fA-F]{24}$/.test(id);
+};
+
 // Get all workshops with optional filters
 export const getAllWorkshops = async (req: Request, res: Response) => {
   try {
@@ -66,6 +71,11 @@ export const getAllWorkshops = async (req: Request, res: Response) => {
 export const getWorkshopById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid workshop ID format' });
+    }
+
     const workshop = await prisma.workshop.findUnique({
       where: { id },
       include: {
@@ -152,6 +162,10 @@ export const updateWorkshop = async (req: Request, res: Response) => {
     const { title, description, zoomLink, price, skillsTaught } = req.body;
     const userId = (req as any).user.id;
 
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid workshop ID format' });
+    }
+
     // Check if user is the host
     const workshop = await prisma.workshop.findUnique({
       where: { id },
@@ -189,6 +203,10 @@ export const deleteWorkshop = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = (req as any).user.id;
 
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid workshop ID format' });
+    }
+
     // Check if user is the host
     const workshop = await prisma.workshop.findUnique({
       where: { id },
@@ -221,6 +239,10 @@ export const registerForWorkshop = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req as any).user.id;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid workshop ID format' });
+    }
 
     // Check if workshop exists
     const workshop = await prisma.workshop.findUnique({
@@ -262,6 +284,10 @@ export const getWorkshopAttendees = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req as any).user.id;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid workshop ID format' });
+    }
 
     // Check if user is the host or admin
     const workshop = await prisma.workshop.findUnique({
@@ -308,6 +334,19 @@ export const getWorkshopReviews = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid workshop ID format' });
+    }
+
+    // Check if workshop exists
+    const workshop = await prisma.workshop.findUnique({
+      where: { id }
+    });
+
+    if (!workshop) {
+      return res.status(404).json({ message: 'Workshop not found' });
+    }
+
     const reviews = await prisma.review.findMany({
       where: { 
         workshopId: id
@@ -338,6 +377,19 @@ export const addWorkshopReview = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { rating, comment } = req.body;
     const userId = (req as any).user.id;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid workshop ID format' });
+    }
+
+    // Check if workshop exists
+    const workshop = await prisma.workshop.findUnique({
+      where: { id }
+    });
+
+    if (!workshop) {
+      return res.status(404).json({ message: 'Workshop not found' });
+    }
 
     // Check if user has attended the workshop
     const attendance = await prisma.userWorkshop.findFirst({
@@ -382,41 +434,34 @@ export const addWorkshopReview = async (req: Request, res: Response) => {
     });
 
     // Check if host qualifies for a badge
-    const workshop = await prisma.workshop.findUnique({
-      where: { id },
-      select: { hostId: true }
+    const hostReviews = await prisma.review.count({
+      where: {
+        workshop: {
+          hostId: workshop.hostId
+        },
+        rating: 5
+      }
     });
 
-    if (workshop) {
-      const hostReviews = await prisma.review.count({
-        where: {
-          workshop: {
-            hostId: workshop.hostId
-          },
-          rating: 5
-        }
+    if (hostReviews >= 10) {
+      const guruBadge = await prisma.badge.findFirst({
+        where: { name: 'GURU' }
       });
 
-      if (hostReviews >= 10) {
-        const guruBadge = await prisma.badge.findFirst({
-          where: { name: 'GURU' }
-        });
-
-        if (guruBadge) {
-          await prisma.userBadge.upsert({
-            where: {
-              userId_badgeId: {
-                userId: workshop.hostId,
-                badgeId: guruBadge.id
-              }
-            },
-            create: {
+      if (guruBadge) {
+        await prisma.userBadge.upsert({
+          where: {
+            userId_badgeId: {
               userId: workshop.hostId,
               badgeId: guruBadge.id
-            },
-            update: {}
-          });
-        }
+            }
+          },
+          create: {
+            userId: workshop.hostId,
+            badgeId: guruBadge.id
+          },
+          update: {}
+        });
       }
     }
 
@@ -501,5 +546,122 @@ export const getWorkshopSuggestions = async (req: Request, res: Response) => {
     res.json(workshopsWithRatings);
   } catch (error) {
     res.status(500).json({ message: 'Error getting suggestions', error });
+  }
+};
+
+// Get workshops organized by the user
+export const getMyOrganizedWorkshops = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+
+    const workshops = await prisma.workshop.findMany({
+      where: {
+        hostId: userId
+      },
+      include: {
+        attendees: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                profilePic: true
+              }
+            }
+          }
+        },
+        reviews: {
+          select: {
+            rating: true
+          }
+        },
+        _count: {
+          select: {
+            attendees: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // Calculate average ratings
+    const workshopsWithRatings = workshops.map(workshop => {
+      const avgRating = workshop.reviews.length > 0
+        ? workshop.reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / workshop.reviews.length
+        : 0;
+      return {
+        ...workshop,
+        avgRating,
+        attendeesCount: workshop._count.attendees
+      };
+    });
+
+    res.json(workshopsWithRatings);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching organized workshops', error });
+  }
+};
+
+// Get workshops joined by the user
+export const getMyJoinedWorkshops = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+
+    const userWorkshops = await prisma.userWorkshop.findMany({
+      where: {
+        userId: userId
+      },
+      include: {
+        workshop: {
+          include: {
+            host: {
+              select: {
+                id: true,
+                name: true,
+                profilePic: true,
+                badges: {
+                  include: {
+                    badge: true
+                  }
+                }
+              }
+            },
+            reviews: {
+              select: {
+                rating: true
+              }
+            },
+            _count: {
+              select: {
+                attendees: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        attendedAt: 'desc'
+      }
+    });
+
+    // Transform the data and calculate average ratings
+    const workshops = userWorkshops.map(uw => {
+      const workshop = uw.workshop;
+      const avgRating = workshop.reviews.length > 0
+        ? workshop.reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / workshop.reviews.length
+        : 0;
+      return {
+        ...workshop,
+        avgRating,
+        attendeesCount: workshop._count.attendees,
+        joinedAt: uw.attendedAt
+      };
+    });
+
+    res.json(workshops);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching joined workshops', error });
   }
 };
