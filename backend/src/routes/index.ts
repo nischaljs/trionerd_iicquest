@@ -5,6 +5,7 @@ import workshopRoutes from './workshop.routes';
 import applicationRoutes from './application.routes';
 import contractRoutes from './contract.routes';
 import reviewRoutes from './review.routes';
+import openSourceRoutes from './openSourceProject.routes'
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.use('/workshops', workshopRoutes);
 router.use('/applications', applicationRoutes);
 router.use('/contracts', contractRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/open-source-projects',openSourceRoutes)
 
 export default router; 
