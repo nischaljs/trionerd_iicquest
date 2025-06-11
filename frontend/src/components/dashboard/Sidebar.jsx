@@ -1,7 +1,9 @@
+import React, { useState } from "react";
 import {
   Bell,
   User,
   ChevronDown,
+  ChevronRight,
   Menu,
   X,
   Home,
@@ -16,14 +18,30 @@ import {
   Plus,
   Eye,
 } from "lucide-react";
+
 const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
+  const [workshopsExpanded, setWorkshopsExpanded] = useState(false);
+
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: Home },
-    { id: "workshops", label: "Workshops", icon: BookOpen },
+    { 
+      id: "workshops", 
+      label: "Workshops", 
+      icon: BookOpen,
+      hasDropdown: true,
+      subItems: [
+        { id: "my-workshops", label: "My Workshops" },
+        { id: "join-workshop", label: "Join Workshop" }
+      ]
+    },
     { id: "jobs", label: "Job Board", icon: Briefcase },
     { id: "badges", label: "Badges", icon: Award },
     { id: "profile", label: "Profile", icon: User },
   ];
+
+  const handleWorkshopsClick = () => {
+    setWorkshopsExpanded(!workshopsExpanded);
+  };
 
   const SidebarContent = () => (
     <div className="h-full bg-slate-50 border-r border-gray-200">
@@ -49,20 +67,67 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeRoute === item.id;
+            const isSubItemActive = item.subItems?.some(subItem => activeRoute === subItem.id);
 
             return (
-              <a
-                key={item.id}
-                href="#"
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-sm"
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
-              </a>
+              <div key={item.id}>
+                {/* Main Menu Item */}
+                {item.hasDropdown ? (
+                  <button
+                    onClick={handleWorkshopsClick}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
+                      isActive || isSubItemActive
+                        ? "bg-blue-600 text-white shadow-lg"
+                        : "text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-sm"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon className="w-5 h-5" />
+                      <span className="font-medium">{item.label}</span>
+                    </div>
+                    {workshopsExpanded ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                  </button>
+                ) : (
+                  <a
+                    href="#"
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                      isActive
+                        ? "bg-blue-600 text-white shadow-lg"
+                        : "text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-sm"
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </a>
+                )}
+
+                {/* Dropdown Sub-items */}
+                {item.hasDropdown && workshopsExpanded && (
+                  <div className="ml-4 mt-2 space-y-1">
+                    {item.subItems.map((subItem) => {
+                      const isSubActive = activeRoute === subItem.id;
+                      return (
+                        <a
+                          key={subItem.id}
+                          href="#"
+                          className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 ${
+                            isSubActive
+                              ? "bg-blue-100 text-blue-700 font-medium"
+                              : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+                          }`}
+                        >
+                          <div className="w-2 h-2 rounded-full bg-current opacity-50"></div>
+                          <span className="text-sm">{subItem.label}</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
@@ -110,4 +175,5 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
     </div>
   );
 };
+
 export default Sidebar;
