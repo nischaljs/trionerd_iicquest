@@ -1,8 +1,8 @@
 import { Router } from 'express';
+import { authMiddleware } from '../middlewares/auth.middleware';
 import {
   getAllUsers,
   getUserById,
-  createUser,
   updateUser,
   deleteUser,
   getUserBadges,
@@ -10,6 +10,9 @@ import {
   getUserAttendedWorkshops,
   getUserJobReviews,
   getUserWorkshopReviews,
+  registerUser,
+  loginUser,
+  getProfile,
 } from '../controllers/user.controller';
 
 const router = Router();
@@ -54,8 +57,6 @@ router.get('/', getAllUsers);
  *       404:
  *         description: User not found
  */
-router.get('/:id', getUserById);
-
 /**
  * @swagger
  * /api/users:
@@ -72,7 +73,10 @@ router.get('/:id', getUserById);
  *       201:
  *         description: User created successfully
  */
-router.post('/', createUser);
+router.post('/register', registerUser);
+router.post('/login', loginUser);
+router.get('/me', authMiddleware, getProfile);
+router.get('/:id', getUserById);
 
 /**
  * @swagger
