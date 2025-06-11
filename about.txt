@@ -1,0 +1,266 @@
+Perfect! Here's the final and complete project document for your hackathon, now titled ChalkBox — incorporating every key component: vision, tech, features, Prisma data models, ML suggestions, smart contracts, gamification, and more.
+
+📌 Project Title
+ChalkBox – Empowering Nepali Students to Learn, Teach, and Earn
+
+🎯 Project Objective
+Build a student-first digital platform where Nepali high school and college students can:
+📌 Showcase their skills and portfolios
+
+
+🎓 Teach live workshops and earn platform tokens
+
+
+💼 Access verified job and internship opportunities
+
+
+🔐 Use blockchain-based smart contracts for trust and fairness
+
+
+🧠 Get ML-based personalized suggestions for  jobs and workshops
+
+
+🏆 Earn gamified badges rooted in Nepali culture
+
+
+
+🔍 Problem Addressed
+Nepali students face:
+❌ Lack of real-world exposure during education
+
+
+❌ Unpaid or exploitative internships
+
+
+❌ Minimal part-time hiring in the local market
+
+
+❌ No easy way to monetize or showcase skills early
+
+
+Meanwhile, the government aims to promote 20 hours/week of part-time work, but platforms are missing.
+
+💡 Proposed Solution: ChalkBox
+A web platform where:
+Students create profiles, list skills, and find work
+
+
+They can host or attend live workshops (via Zoom)
+
+
+Employers post verified gigs and internships
+
+
+All job agreements are logged on the blockchain for transparency
+
+
+Platform tokens are rewarded for contributions (non-crypto)
+
+
+AI/ML recommends next-step workshops and matching jobs
+
+
+Peer reviews + gamified badge system (e.g., Guru, Acharya) build community trust
+
+
+
+🧱 Tech Stack
+Layer
+Tech Used
+Frontend
+React.js, Tailwind CSS
+Backend
+Node.js, Express.js
+Database
+MongoDB via Prisma
+ORM
+Prisma (MongoDB-compatible schema)
+Blockchain
+Polygon Mumbai Testnet (only smart contracts)
+ML Matching
+Python (Flask) or simple Node-based TF-IDF
+Hosting
+Vercel / Render / Railway
+Payments
+Not in scope (no eSewa/Khalti yet)
+Dev Tools
+GitHub, Postman, Prisma Studio
+
+
+🧠 Key Features
+🔹 User Roles
+Student – Create profile, apply to jobs, teach/join workshops
+
+
+Employer – Post jobs, hire verified students
+
+
+Admin – Moderate, verify companies, manage reviews/disputes
+
+
+
+🔹 Modules Breakdown
+Module
+Description
+Authentication
+JWT-based login/register with role-based access
+Student Profile
+Skills, bio, portfolio, badges, tokens earned
+Job Board
+Verified jobs & internships, with smart contract upon acceptance
+Smart Contracts
+Immutable agreement hash logged on Polygon (no tokens, no crypto)
+Workshop Hosting
+Zoom-based sessions with peer reviews & token earnings
+Workshop Reviews
+Attendees review hosts; affects ratings, trust & badge levels
+Badging System
+Culturally themed levels: Shiksharthi → Guru → Acharya
+Token System
+Non-crypto points earned for activities (e.g., teaching, reviewing)
+ML Matching
+Suggest jobs/workshops based on skills, learning paths, and peer activity
+Featured Workshops
+Personalized learning suggestions (e.g., “Next skill after MERN: Docker”)
+Admin Panel
+View reports, flag abuse, verify employers
+
+
+🛠️ Data Modeling (Prisma + MongoDB)
+Key models include:
+User (role, skills, tokens, badges)
+
+
+Job (tags, requiredSkills, employer)
+
+
+Workshop (skillsTaught, Zoom link, host)
+
+
+Application (student proposals)
+
+
+Contract (agreement hashes, linked to job and users)
+
+
+Review (workshop or job rating)
+
+
+Badge (name, icon, description)
+
+
+📎 Full schema already generated and can be imported into your repo.
+
+🔗 Blockchain Usage (Non-Crypto)
+Use Case
+How Blockchain is Used
+Job Agreement
+Hash stored on Polygon Mumbai
+Work Delivery Verification
+File hashes stored on chain
+Review Integrity
+Ratings stored immutably for transparency
+No Token Transfers
+Just data hashes, no wallets needed
+
+
+🤖 ML Personalization Layer
+Matches students to jobs using:
+
+
+Skill overlap (TF-IDF, cosine similarity)
+
+
+NLP on job descriptions vs student profile
+
+
+Recommends workshops to “level up” based on skill trees:
+
+
+MERN → Docker → AWS
+
+
+Design → Figma → Freelancing
+
+
+System learns what other top students are learning and promotes accordingly
+
+
+
+🏅 Gamification – Badges & Tokens
+Badge Name
+Criteria
+Shiksharthi
+Joined platform, completed first activity
+Sikshya-sevi
+Hosted 1+ workshops
+Guru
+10+ 5-star peer reviews on workshops
+Acharya
+Admin-verified top mentor level
+Utsaahi Intern
+Completed 3+ contracts
+
+➡️ Badges stored in the user profile and shown on the dashboard.
+
+📊 System Architecture
+React (Frontend)
+   |
+Express (API Server)
+   |
+MongoDB (Prisma Models)
+   |
+Python ML Service (optional)
+   |
+Polygon Smart Contracts (only for contract hashing)
+
+
+🎨 UI Highlights (Wireframe-level)
+🏠 Dashboard
+
+
+Personalized cards: “New workshops”, “Your next skill”, “Jobs for you”
+
+
+📚 Workshop Feed
+
+
+Tags, badges for hosts, ratings, and Zoom links
+
+
+💼 Jobs Section
+
+
+Filters: skills, remote, verified employer
+
+
+🎓 Student Profile
+
+
+Skills, badges, hosted workshops, ratings
+
+
+🧠 Learn More / Explore
+
+
+Suggested next-step workshops (ML-based)
+
+
+“Others also learned” section
+
+
+
+💥 Why ChalkBox Stands Out
+✅ Tailored for Nepali students’ reality
+ ✅ Peer-to-peer education + income model
+ ✅ Trust via blockchain-backed contracts
+ ✅ Intelligent matching via ML/NLP
+ ✅ Culturally localized gamification
+ ✅ Aligned with government policy on student work hours
+ ✅ Scalable into a real product post-hackathon
+
+Would you like me to export this as a PDF, Notion page, or markdown file for your team?
+Let’s ship ChalkBox 🚀
+
+
+
