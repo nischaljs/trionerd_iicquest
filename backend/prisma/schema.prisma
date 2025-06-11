@@ -8,7 +8,138 @@ datasource db {
 }
 
 model User {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  name  String
-  email String @unique
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  email             String         @unique
+  password          String
+  name              String
+  bio               String?
+  role              UserRole
+  profilePic        String?
+  skills            String[]
+  tokens            Int            @default(0)
+  badges            UserBadge[]
+  reviews           Review[]       @relation("TargetReviews")
+  workshopsHosted   Workshop[]     @relation("HostedWorkshops")
+  workshopsAttended UserWorkshop[]
+  jobPosts          Job[]          @relation("EmployerJobs")
+  applications      Application[]  @relation("StudentApplications")
+  contracts         Contract[]     @relation("UserContracts")
+  createdAt         DateTime       @default(now())
+  Contract          Contract[]
+  Review            Review[]
+}
+
+model UserBadge {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String @db.ObjectId
+  badge   Badge  @relation(fields: [badgeId], references: [id])
+  badgeId String @db.ObjectId
+
+  @@unique([userId, badgeId])
+}
+
+model UserWorkshop {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @db.ObjectId
+  workshop   Workshop @relation(fields: [workshopId], references: [id])
+  workshopId String   @db.ObjectId
+
+  @@unique([userId, workshopId])
+}
+
+enum UserRole {
+  STUDENT
+  EMPLOYER
+  ADMIN
+}
+
+model Badge {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  iconUrl     String?
+  users       UserBadge[]
+}
+
+model Job {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  description    String
+  requiredSkills String[]
+  tags           String[]
+  isVerified     Boolean       @default(false)
+  employer       User          @relation("EmployerJobs", fields: [employerId], references: [id])
+  employerId     String        @db.ObjectId
+  applications   Application[]
+  contracts      Contract[]
+  createdAt      DateTime      @default(now())
+}
+
+model Application {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  job       Job       @relation(fields: [jobId], references: [id])
+  jobId     String    @db.ObjectId
+  student   User      @relation("StudentApplications", fields: [studentId], references: [id])
+  studentId String    @db.ObjectId
+  proposal  String
+  status    AppStatus @default(PENDING)
+  createdAt DateTime  @default(now())
+}
+
+enum AppStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Workshop {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String
+  zoomLink     String
+  price        Float
+  host         User           @relation("HostedWorkshops", fields: [hostId], references: [id])
+  hostId       String         @db.ObjectId
+  attendees    UserWorkshop[]
+  tokensEarned Int            @default(0)
+  createdAt    DateTime       @default(now())
+}
+
+model Contract {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  student       User           @relation("UserContracts", fields: [studentId], references: [id])
+  studentId     String         @db.ObjectId
+  employer      User           @relation(fields: [employerId], references: [id])
+  employerId    String         @db.ObjectId
+  job           Job            @relation(fields: [jobId], references: [id])
+  jobId         String         @db.ObjectId
+  agreementHash String
+  status        ContractStatus @default(PENDING)
+  createdAt     DateTime       @default(now())
+}
+
+enum ContractStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  DISPUTED
+}
+
+model Review {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  reviewer   User       @relation(fields: [reviewerId], references: [id])
+  reviewerId String     @db.ObjectId
+  target     User       @relation("TargetReviews", fields: [targetId], references: [id])
+  targetId   String     @db.ObjectId
+  rating     Int
+  comment    String?
+  type       ReviewType @default(JOB)
+  createdAt  DateTime   @default(now())
+}
+
+enum ReviewType {
+  JOB
+  WORKSHOP
 }
