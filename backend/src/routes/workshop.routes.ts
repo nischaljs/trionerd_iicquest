@@ -10,13 +10,24 @@ import {
   getWorkshopAttendees,
   getWorkshopReviews,
   addWorkshopReview,
-  getWorkshopSuggestions
+  getWorkshopSuggestions,
+  getMyOrganizedWorkshops,
+  getMyJoinedWorkshops
 } from '../controllers/workshop.controller';
 
 const router = Router();
 
 // Get all workshops with optional filters
 router.get('/', getAllWorkshops);
+
+// Get personalized workshop suggestions
+router.get('/suggestions', authMiddleware, getWorkshopSuggestions);
+
+// Get workshops organized by the user
+router.get('/my-organized', authMiddleware, getMyOrganizedWorkshops);
+
+// Get workshops joined by the user
+router.get('/my-joined', authMiddleware, getMyJoinedWorkshops);
 
 // Get workshop by ID
 router.get('/:id', getWorkshopById);
@@ -41,8 +52,5 @@ router.get('/:id/reviews', getWorkshopReviews);
 
 // Add workshop review
 router.post('/:id/reviews', authMiddleware, addWorkshopReview);
-
-// Get personalized workshop suggestions
-router.get('/suggestions', authMiddleware, getWorkshopSuggestions);
 
 export default router; 
