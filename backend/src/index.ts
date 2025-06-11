@@ -5,10 +5,21 @@ import routes from './routes';
 import prisma from './utils/prisma';
 const app = express();
 
-
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      if (
+        buf.length === 0 &&
+        req.headers['content-type']?.includes('application/json')
+      ) {
+        throw new Error('Empty JSON body');
+      }
+    },
+  })
+);
 
 // Routes
 app.use('/api', routes);
@@ -18,7 +29,7 @@ app.use(errorHandler);
 
 async function startServer() {
   try {
-    await prisma.$runCommandRaw({ ping: 1 }); 
+    await prisma.$runCommandRaw({ ping: 1 });
     console.log('✅ [INFO] Prisma connected to MongoDB');
 
     app.listen(3000, () => {
