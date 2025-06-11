@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Menu, X, ChevronDown, Bell, User, Search } from "lucide-react";
 
 const Navbar = () => {
@@ -110,12 +111,12 @@ const Navbar = () => {
                     >
                       Profile
                     </a>
-                    <a
-                      href="#"
+                    <Link
+                      to="/dashboard"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
                     >
                       Dashboard
-                    </a>
+                    </Link>
                     <a
                       href="#"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
