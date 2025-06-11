@@ -22,3 +22,18 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     return res.status(403).json({ error: 'Invalid token' });
   }
 };
+
+export const adminOnly = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user || req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+};
+
+
+export const employerOnly = (req: Request, res: Response, next: NextFunction) => {
+  if (req.user?.role !== 'EMPLOYER') {
+    return res.status(403).json({ error: 'Employer access required' });
+  }
+  next();
+};
