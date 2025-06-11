@@ -35,7 +35,7 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
         { id: "join-workshops", label: "Join Workshop" },
       ],
     },
-    { id: "jobs", label: "Job Board", icon: Briefcase },
+    { id: "dashboard/collaborate", label: "Collaborate", icon: Briefcase },
     { id: "badges", label: "Badges", icon: Award },
     { id: "dashboard/profile", label: "Profile", icon: User },
   ];
