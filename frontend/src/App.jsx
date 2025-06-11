@@ -8,6 +8,7 @@ import JoinWorkshops from "./components/dashboard/workshop/JoinWorkshops";
 import LoginForm from "./components/form/LoginForm";
 import StudentProfile from "./components/dashboard/profile/StudentProfile";
 import OpenSourceProjectsFeed from "./components/dashboard/forum/OpenSourceProjectsFeed";
+import FreelanceProjectFeed from "./components/dashboard/freelance/FreelanceProjectFeed";
 
 const App = () => {
   const router = createBrowserRouter([
@@ -43,6 +44,10 @@ const App = () => {
         {
           path: "/dashboard/collaborate",
           element: <OpenSourceProjectsFeed />,
+        },
+        {
+          path: "/dashboard/freelance-feed",
+          element: <FreelanceProjectFeed />,
         },
       ],
     },

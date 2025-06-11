@@ -18,10 +18,29 @@ import {
   Plus,
   Eye,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
+const Sidebar = ({ isOpen, onClose, isMobile }) => {
+  const location = useLocation();
   const [workshopsExpanded, setWorkshopsExpanded] = useState(false);
+
+  // Get the current path and remove leading/trailing slashes
+  const currentPath = location.pathname.replace(/^\/|\/$/g, "");
+
+  // Auto-expand workshops if one of its sub-items is active
+  React.useEffect(() => {
+    const isWorkshopSubItemActive = menuItems
+      .find((item) => item.id === "workshops")
+      ?.subItems?.some(
+        (subItem) =>
+          currentPath === `dashboard/${subItem.id}` ||
+          currentPath === subItem.id
+      );
+
+    if (isWorkshopSubItemActive) {
+      setWorkshopsExpanded(true);
+    }
+  }, [currentPath]);
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: Home },
@@ -35,8 +54,8 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
         { id: "join-workshops", label: "Join Workshop" },
       ],
     },
-    { id: "dashboard/collaborate", label: "Collaborate", icon: Briefcase },
-    { id: "badges", label: "Badges", icon: Award },
+    { id: "dashboard/collaborate", label: "Collaborate", icon: Users },
+    { id: "dashboard/freelance-feed", label: "Freelance", icon: Star },
     { id: "dashboard/profile", label: "Profile", icon: User },
   ];
 
@@ -67,9 +86,14 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
         <nav className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeRoute === item.id;
+            // Check if current path matches the item id or starts with it
+            const isActive =
+              currentPath === item.id ||
+              (item.id !== "dashboard" && currentPath.startsWith(item.id));
             const isSubItemActive = item.subItems?.some(
-              (subItem) => activeRoute === subItem.id
+              (subItem) =>
+                currentPath === `dashboard/${subItem.id}` ||
+                currentPath === subItem.id
             );
 
             return (
@@ -112,7 +136,9 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
                 {item.hasDropdown && workshopsExpanded && (
                   <div className="ml-4 mt-2 space-y-1">
                     {item.subItems.map((subItem) => {
-                      const isSubActive = activeRoute === subItem.id;
+                      const isSubActive =
+                        currentPath === `dashboard/${subItem.id}` ||
+                        currentPath === subItem.id;
                       return (
                         <Link
                           key={subItem.id}
