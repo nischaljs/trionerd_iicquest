@@ -48,7 +48,7 @@ const ChalkBoxeDashboard = () => {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           isMobile={isMobile}
-          activeRoute="dashboard"
+          activeRoute="employer-dashboard"
         />
 
         {/* Main Content */}

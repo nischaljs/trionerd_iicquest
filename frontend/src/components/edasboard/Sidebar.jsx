@@ -32,7 +32,7 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
   const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
 
   const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: Home },
+    { id: "employer-dashboard", label: "Dashboard", icon: Home },
     {
       id: "jobs",
       label: "Job Management",
@@ -106,12 +106,17 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
       <div className="p-6">
         {/* Logo */}
         <div className="flex items-center space-x-3 mb-8">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center" style={{backgroundColor: '#2A66DE'}}>
+          <div
+            className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: "#2A66DE" }}
+          >
             <span className="text-white font-bold text-lg">CB</span>
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-bold text-gray-800">ChalkBox</span>
-            <span className="text-xs font-medium" style={{color: '#2A66DE'}}>Employer</span>
+            <span className="text-xs font-medium" style={{ color: "#2A66DE" }}>
+              Employer
+            </span>
           </div>
           {isMobile && (
             <button
@@ -144,7 +149,11 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
                         ? "text-white shadow-lg"
                         : "text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-sm"
                     }`}
-                    style={isActive || isSubItemActive ? {backgroundColor: '#2A66DE'} : {}}
+                    style={
+                      isActive || isSubItemActive
+                        ? { backgroundColor: "#2A66DE" }
+                        : {}
+                    }
                   >
                     <div className="flex items-center space-x-3">
                       <Icon className="w-5 h-5" />
@@ -164,7 +173,7 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
                         ? "text-white shadow-lg"
                         : "text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-sm"
                     }`}
-                    style={isActive ? {backgroundColor: '#2A66DE'} : {}}
+                    style={isActive ? { backgroundColor: "#2A66DE" } : {}}
                   >
                     <Icon className="w-5 h-5" />
                     <span className="font-medium">{item.label}</span>
@@ -185,7 +194,9 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
                               ? "font-medium text-white"
                               : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
                           }`}
-                          style={isSubActive ? {backgroundColor: '#2A66DE'} : {}}
+                          style={
+                            isSubActive ? { backgroundColor: "#2A66DE" } : {}
+                          }
                         >
                           <div className="w-2 h-2 rounded-full bg-current opacity-50"></div>
                           <span className="text-sm">{subItem.label}</span>
@@ -208,9 +219,13 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
             <Link
               to="/employer/post-job"
               className="flex items-center space-x-3 px-4 py-2 hover:bg-white rounded-lg transition-all duration-200"
-              style={{color: '#2A66DE'}}
-              onMouseEnter={(e) => e.target.closest('a').style.backgroundColor = '#f8fafc'}
-              onMouseLeave={(e) => e.target.closest('a').style.backgroundColor = 'transparent'}
+              style={{ color: "#2A66DE" }}
+              onMouseEnter={(e) =>
+                (e.target.closest("a").style.backgroundColor = "#f8fafc")
+              }
+              onMouseLeave={(e) =>
+                (e.target.closest("a").style.backgroundColor = "transparent")
+              }
             >
               <Plus className="w-4 h-4" />
               <span className="text-sm font-medium">Post Job</span>
@@ -218,9 +233,13 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
             <Link
               to="/employer/create-workshop"
               className="flex items-center space-x-3 px-4 py-2 hover:bg-white rounded-lg transition-all duration-200"
-              style={{color: '#2A66DE'}}
-              onMouseEnter={(e) => e.target.closest('a').style.backgroundColor = '#f8fafc'}
-              onMouseLeave={(e) => e.target.closest('a').style.backgroundColor = 'transparent'}
+              style={{ color: "#2A66DE" }}
+              onMouseEnter={(e) =>
+                (e.target.closest("a").style.backgroundColor = "#f8fafc")
+              }
+              onMouseLeave={(e) =>
+                (e.target.closest("a").style.backgroundColor = "transparent")
+              }
             >
               <Calendar className="w-4 h-4" />
               <span className="text-sm font-medium">Create Workshop</span>
