@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { calculateSimilarityScore, sortBySimilarity } from '../utils/recommendation';
 
 // Helper function to validate MongoDB ObjectId
 const isValidObjectId = (id: string): boolean => {
@@ -400,14 +401,13 @@ export const getJobContracts = async (req: Request, res: Response) => {
 export const getJobSuggestions = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    const { limit = '5' } = req.query;
-    const limitNum = parseInt(limit as string);
+    const limit = parseInt(req.query.limit as string) || 10;
+    const minSimilarity = 0.01; // Lower threshold to 1% to ensure some recommendations
 
-    // Get user's skills and badges
+    // Get user with skills and badges
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        skills: true,
+      include: {
         badges: {
           include: {
             badge: true
@@ -415,7 +415,8 @@ export const getJobSuggestions = async (req: Request, res: Response) => {
         },
         applications: {
           select: {
-            jobId: true
+            jobId: true,
+            status: true
           }
         }
       }
@@ -425,61 +426,103 @@ export const getJobSuggestions = async (req: Request, res: Response) => {
       return createError(res, 'User not found', 'USER_NOT_FOUND', 404);
     }
 
-    // Find jobs matching user's skills that they haven't applied to
-    const suggestedJobs = await prisma.job.findMany({
+    // Get all open jobs that haven't been completed or are in progress
+    const jobs = await prisma.job.findMany({
       where: {
-        requiredSkills: {
-          hasSome: user.skills
-        },
-        id: {
-          notIn: user.applications.map(a => a.jobId)
-        },
         status: 'OPEN',
-        isVerified: true
+        NOT: {
+          OR: [
+            {
+              contracts: {
+                some: {
+                  OR: [
+                    { status: 'ACTIVE' },
+                    { status: 'COMPLETED' }
+                  ]
+                }
+              }
+            },
+            {
+              applications: {
+                some: {
+                  studentId: userId,
+                  status: 'ACCEPTED'
+                }
+              }
+            }
+          ]
+        }
       },
       include: {
         employer: {
           select: {
             id: true,
             name: true,
-            profilePic: true
+            profilePic: true,
+            badges: {
+              include: {
+                badge: true
+              }
+            }
           }
         },
-        _count: {
+        applications: {
           select: {
-            applications: true
+            id: true,
+            status: true
           }
-        }
-      },
-      orderBy: [
-        {
-          isVerified: 'desc'
         },
-        {
-          applications: {
-            _count: 'desc'
+        contracts: {
+          select: {
+            id: true,
+            status: true
           }
         }
-      ],
-      take: limitNum
+      }
     });
 
-    // Calculate skill match percentage for each job
-    const jobsWithMatchPercentage = suggestedJobs.map(job => {
-      const matchingSkills = job.requiredSkills.filter(skill => 
-        user.skills.includes(skill)
+    // Calculate similarity scores for each job
+    const jobsWithScores = jobs.map(job => {
+      const hasAppliedBefore = user.applications.some(app => app.jobId === job.id);
+      const similarity = calculateSimilarityScore(
+        user.skills,
+        job.requiredSkills,
+        user.badges,
+        hasAppliedBefore
       );
-      const matchPercentage = (matchingSkills.length / job.requiredSkills.length) * 100;
-      
+
       return {
         ...job,
-        skillMatchPercentage: Math.round(matchPercentage)
+        similarity,
+        debug: {
+          userSkills: user.skills,
+          jobSkills: job.requiredSkills,
+          hasAppliedBefore,
+          badgeCount: user.badges.length,
+          status: job.status,
+          applications: job.applications.length,
+          activeContracts: job.contracts.filter(c => c.status === 'ACTIVE').length
+        }
       };
     });
 
+    // Filter out jobs with zero similarity and sort by similarity score
+    const filteredJobs = jobsWithScores
+      .filter(job => job.similarity.score >= minSimilarity)
+      .sort((a, b) => b.similarity.score - a.similarity.score)
+      .slice(0, limit);
+
     res.json({
       status: 'success',
-      data: jobsWithMatchPercentage
+      data: filteredJobs,
+      meta: {
+        total: filteredJobs.length,
+        minSimilarity,
+        limit,
+        totalJobs: jobs.length,
+        userSkills: user.skills,
+        userBadges: user.badges.map(b => b.badge.tier)
+      }
     });
   } catch (error) {
     createError(res, 'Failed to get job suggestions', 'GET_SUGGESTIONS_ERROR', 500);
