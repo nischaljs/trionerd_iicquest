@@ -7,11 +7,11 @@ import MyWorkshop from "./components/dashboard/workshop/MyWorkshop";
 import JoinWorkshops from "./components/dashboard/workshop/JoinWorkshops";
 import LoginForm from "./components/form/LoginForm";
 import StudentProfile from "./components/dashboard/profile/StudentProfile";
+import OpenSourceProjectsFeed from "./components/dashboard/forum/OpenSourceProjectsFeed";
+import FreelanceProjectFeed from "./components/dashboard/freelance/FreelanceProjectFeed";
 import ChalkBoxEmployerDashboard from "./components/edasboard/ChalkBoxEmployerDashboard";
 import EDashboard from "./components/edasboard/EDashboard";
 
-import OpenSourceProjectsFeed from "./components/dashboard/forum/OpenSourceProjectsFeed";
-import FreelanceProjectFeed from "./components/dashboard/freelance/FreelanceProjectFeed";
 
 const App = () => {
   const router = createBrowserRouter([
