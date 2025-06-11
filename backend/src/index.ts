@@ -16,6 +16,18 @@ app.post('/users', async (req, res) => {
   res.json(user);
 });
 
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
-});
+async function startServer() {
+  try {
+    await prisma.$runCommandRaw({ ping: 1 }); // ✅ New MongoDB ping method
+    console.log('✅ [INFO] Prisma connected to MongoDB');
+
+    app.listen(3000, () => {
+      console.log('🚀 [INFO] Server running on http://localhost:3000');
+    });
+  } catch (error) {
+    console.error('❌ [ERROR] Could not connect to the database:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
