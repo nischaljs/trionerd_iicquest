@@ -1,24 +1,24 @@
+import cors from 'cors';
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
-
+import { errorHandler } from './middlewares/errorHandler';
+import routes from './routes';
+import prisma from './utils/prisma';
 const app = express();
-const prisma = new PrismaClient();
+
+
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-app.get('/users', async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.json(users);
-});
+// Routes
+app.use('/api', routes);
 
-app.post('/users', async (req, res) => {
-  const { name, email } = req.body;
-  const user = await prisma.user.create({ data: { name, email } });
-  res.json(user);
-});
+// Error handling middleware (should be last)
+app.use(errorHandler);
 
 async function startServer() {
   try {
-    await prisma.$runCommandRaw({ ping: 1 }); // ✅ New MongoDB ping method
+    await prisma.$runCommandRaw({ ping: 1 }); 
     console.log('✅ [INFO] Prisma connected to MongoDB');
 
     app.listen(3000, () => {
