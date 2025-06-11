@@ -141,10 +141,24 @@ model Workshop {
   reviews      Review[]       @relation("WorkshopReviews")
   tokensEarned Int            @default(0)
   skillsTaught String[]
+  status       WorkshopStatus @default(UPCOMING)
+  startDate    DateTime
+  endDate      DateTime
   createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
   @@index([hostId])
   @@index([skillsTaught])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+enum WorkshopStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
 }
 
 model Contract {
