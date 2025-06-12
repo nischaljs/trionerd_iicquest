@@ -51,6 +51,43 @@ async function canUserVote(userId: string): Promise<boolean> {
   return hasRequiredBadge || hasMinimumTokens;
 }
 
+// Helper function to calculate vote weight
+async function calculateVoteWeight(userId: string): Promise<number> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      badges: {
+        include: {
+          badge: true
+        }
+      }
+    }
+  });
+
+  if (!user) return 0;
+
+  let weight = 1; // Base weight
+
+  // Add weight based on badges
+  const badgeWeights: Record<BadgeTier, number> = {
+    [BadgeTier.SHIKSHARTHI]: 1,
+    [BadgeTier.SIKSHA_SEVI]: 2,
+    [BadgeTier.UTSAAHI_INTERN]: 2,
+    [BadgeTier.ACHARYA]: 3,
+    [BadgeTier.GURU]: 5
+  };
+
+  user.badges.forEach(userBadge => {
+    const badgeWeight = badgeWeights[userBadge.badge.tier] || 0;
+    weight += badgeWeight;
+  });
+
+  // Add weight based on tokens (1 weight per 100 tokens)
+  weight += Math.floor(user.tokens / 100);
+
+  return weight;
+}
+
 // Raise a new dispute
 export const raiseDispute = async (req: Request, res: Response) => {
   try {
@@ -82,9 +119,9 @@ export const raiseDispute = async (req: Request, res: Response) => {
       return createErrorResponse(res, 403, 'Not authorized to raise dispute for this contract');
     }
 
-    // Check if contract is completed
-    if (contract.status !== 'COMPLETED') {
-      return createErrorResponse(res, 400, 'Can only raise disputes for completed contracts');
+    // Check if contract is active or completed
+    if (contract.status !== 'ACTIVE' && contract.status !== 'COMPLETED') {
+      return createErrorResponse(res, 400, 'Can only raise disputes for active or completed contracts');
     }
 
     // Check if dispute already exists
@@ -248,7 +285,12 @@ export const castVote = async (req: Request, res: Response) => {
       include: {
         contract: true,
         raisedBy: true,
-        respondedBy: true
+        respondedBy: true,
+        votes: {
+          include: {
+            voter: true
+          }
+        }
       }
     });
 
@@ -271,6 +313,11 @@ export const castVote = async (req: Request, res: Response) => {
       return createErrorResponse(res, 400, 'Invalid vote target');
     }
 
+    // Check if user is one of the parties in dispute
+    if (userId === dispute.raisedById || userId === dispute.respondedById) {
+      return createErrorResponse(res, 400, 'Cannot vote on your own dispute');
+    }
+
     // Check if user has already voted
     const existingVote = await prisma.vote.findFirst({
       where: {
@@ -283,12 +330,16 @@ export const castVote = async (req: Request, res: Response) => {
       return createErrorResponse(res, 400, 'User has already voted on this dispute');
     }
 
+    // Calculate vote weight
+    const voteWeight = await calculateVoteWeight(userId);
+
     // Create vote
     const vote = await prisma.vote.create({
       data: {
         disputeId,
         voterId: userId,
-        votedForId
+        votedForId,
+        weight: voteWeight
       },
       include: {
         dispute: true,
@@ -296,6 +347,42 @@ export const castVote = async (req: Request, res: Response) => {
         votedFor: true
       }
     });
+
+    // Check if we should auto-resolve the dispute
+    const totalVotes = dispute.votes.length + 1; // Including the new vote
+    if (totalVotes >= 5) { // Minimum 5 votes required for auto-resolution
+      let raisedByVotes = dispute.votes
+        .filter(v => v.votedForId === dispute.raisedById)
+        .reduce((sum, v) => sum + (v.weight || 1), 0);
+      
+      let respondedByVotes = dispute.votes
+        .filter(v => v.votedForId === dispute.respondedById)
+        .reduce((sum, v) => sum + (v.weight || 1), 0);
+      
+      // Add the new vote to the count
+      if (votedForId === dispute.raisedById) {
+        raisedByVotes += voteWeight;
+      } else {
+        respondedByVotes += voteWeight;
+      }
+
+      // If one party has more than 60% of the total weighted votes, auto-resolve
+      const totalWeightedVotes = raisedByVotes + respondedByVotes;
+      const threshold = totalWeightedVotes * 0.6;
+
+      if (raisedByVotes > threshold || respondedByVotes > threshold) {
+        const winnerId = raisedByVotes > respondedByVotes ? dispute.raisedById : dispute.respondedById;
+        
+        // Auto-resolve the dispute
+        const mockReq = {
+          params: { id: disputeId },
+          body: { winnerId },
+          user: { id: 'system' }
+        } as unknown as Request;
+        
+        await resolveDispute(mockReq, res);
+      }
+    }
 
     return res.json({
       status: 'success',
@@ -605,5 +692,35 @@ export const getUserRewards = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching user rewards:', error);
     return createErrorResponse(res, 500, 'Failed to fetch user rewards');
+  }
+};
+
+// Get user's voting power
+export const getUserVotingPower = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return createErrorResponse(res, 401, 'Unauthorized');
+    }
+
+    if (!isValidObjectId(userId)) {
+      return createErrorResponse(res, 400, 'Invalid user ID');
+    }
+
+    const weight = await calculateVoteWeight(userId);
+    const canVote = await canUserVote(userId);
+
+    return res.json({
+      status: 'success',
+      data: {
+        weight,
+        canVote
+      }
+    });
+  } catch (error) {
+    console.error('Error getting user voting power:', error);
+    return createErrorResponse(res, 500, 'Failed to get user voting power');
   }
 }; 
