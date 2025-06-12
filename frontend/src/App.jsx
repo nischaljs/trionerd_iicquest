@@ -17,6 +17,7 @@ import FreelanceProjectForm from "./components/edasboard/FreelanceProjectForm ";
 import EmployerJobDashboard from "./components/edasboard/EmployerJobDashboard";
 import OpenSourceContributions from "./components/edasboard/OpenSourceContributions";
 import CompanyProfile from "./components/edasboard/CompanyProfile";
+import WorkshopRequests from "./components/dashboard/workshop/WorkshopRequests";
 
 const App = () => {
   const router = createBrowserRouter([
@@ -74,6 +75,10 @@ const App = () => {
         {
           path: "/dashboard/join-workshops",
           element: <JoinWorkshops />,
+        },
+        {
+          path: "/dashboard/workshops-requests",
+          element: <WorkshopRequests />,
         },
         {
           path: "/dashboard/profile",
