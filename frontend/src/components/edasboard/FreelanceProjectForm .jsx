@@ -138,7 +138,7 @@ const FreelanceProjectForm = () => {
 
             {/* Required Skills */}
             <div>
-              <label className="block text-sm font-bold text-gray-600 mb-2 flex items-center">
+              <label className="text-sm font-bold text-gray-600 mb-2 flex items-center">
                 <Code className="w-4 h-4 mr-1" />
                 Required Skills
               </label>
@@ -205,7 +205,7 @@ const FreelanceProjectForm = () => {
 
             {/* Prize (Budget) */}
             <div>
-              <label className="block text-sm font-bold text-gray-600 mb-2 flex items-center">
+              <label className="text-sm font-bold text-gray-600 mb-2 flex items-center">
                 <DollarSign className="w-4 h-4 mr-1" />
                 Estimated Prize (in NPR)
               </label>
@@ -226,7 +226,7 @@ const FreelanceProjectForm = () => {
 
             {/* Location Type */}
             <div>
-              <label className="block text-sm font-bold text-gray-600 mb-2 flex items-center">
+              <label className="text-sm font-bold text-gray-600 mb-2 flex items-center">
                 <MapPin className="w-4 h-4 mr-1" />
                 Location Type
               </label>
