@@ -23,7 +23,7 @@ const USER_CREDENTIALS = {
 const PASSWORD = 'password123';
 
 async function main() {
-  // Clear existing data
+  // Clear existing dataeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NDllYWY4Zjg5NTk0Y2E1NmFmYzU5ZSIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzQ5Njc0NzgzLCJleHAiOjE3NDk5MzM5ODN9.Wrv9v1kuP7gl_2f5qNcCYNRWti9tRbDTkGnOJPa1jC8
   await prisma.$transaction([
     prisma.review.deleteMany(),
     prisma.userWorkshop.deleteMany(),
