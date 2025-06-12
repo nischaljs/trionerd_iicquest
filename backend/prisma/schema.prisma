@@ -83,9 +83,9 @@ model Badge {
 enum BadgeTier {
   SHIKSHARTHI
   SIKSHA_SEVI
-  GURU
-  ACHARYA
   UTSAAHI_INTERN
+  ACHARYA
+  GURU
 }
 
 model Job {
@@ -332,6 +332,7 @@ model Vote {
   voterId   String   @db.ObjectId
   votedFor  User     @relation("VotedFor", fields: [votedForId], references: [id])
   votedForId String  @db.ObjectId
+  weight    Int      @default(1)
   createdAt DateTime @default(now())
 
   @@unique([disputeId, voterId])

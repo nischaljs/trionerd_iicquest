@@ -20,6 +20,16 @@ import CompanyProfile from "./components/edasboard/CompanyProfile";
 import ProposalInvitationsPanel from "./components/dashboard/freelance/ProposalInvitationsPanel";
 import WorkshopRequests from "./components/dashboard/workshop/WorkshopRequests";
 
+// Import dispute components
+import DisputeList from "./components/disputes/DisputeList";
+import DisputeDetail from "./components/disputes/DisputeDetail";
+import DisputeForm from "./components/disputes/DisputeForm";
+import TokenRewards from "./components/disputes/TokenRewards";
+
+// Import contract components
+import ContractList from "./components/contracts/ContractList";
+import ContractDetail from "./components/contracts/ContractDetail";
+
 const App = () => {
   const router = createBrowserRouter([
     {
@@ -57,6 +67,40 @@ const App = () => {
         {
           path: "/employer-dashboard/company-profile",
           element: <CompanyProfile />,
+        },
+        // Contract routes for employer
+        {
+          path: "/employer-dashboard/contracts",
+          element: <ContractList />,
+        },
+        {
+          path: "/employer-dashboard/contracts/:id",
+          element: <ContractDetail />,
+        },
+        {
+          path: "/employer-dashboard/contracts/active",
+          element: <ContractList status="active" />,
+        },
+        {
+          path: "/employer-dashboard/contracts/completed",
+          element: <ContractList status="completed" />,
+        },
+        // Add dispute routes for employer
+        {
+          path: "/employer-dashboard/disputes",
+          element: <DisputeList />,
+        },
+        {
+          path: "/employer-dashboard/disputes/:id",
+          element: <DisputeDetail />,
+        },
+        {
+          path: "/employer-dashboard/disputes/raise",
+          element: <DisputeForm />,
+        },
+        {
+          path: "/employer-dashboard/disputes/rewards",
+          element: <TokenRewards />,
         },
       ],
     },
@@ -96,7 +140,41 @@ const App = () => {
         {
           path:"/dashboard/freelance-feed/invite",
           element:<ProposalInvitationsPanel />
-        }
+        },
+        // Contract routes
+        {
+          path: "/dashboard/contracts",
+          element: <ContractList />,
+        },
+        {
+          path: "/dashboard/contracts/:id",
+          element: <ContractDetail />,
+        },
+        {
+          path: "/dashboard/contracts/active",
+          element: <ContractList status="active" />,
+        },
+        {
+          path: "/dashboard/contracts/completed",
+          element: <ContractList status="completed" />,
+        },
+        // Add dispute routes for student
+        {
+          path: "/dashboard/disputes",
+          element: <DisputeList />,
+        },
+        {
+          path: "/dashboard/disputes/:id",
+          element: <DisputeDetail />,
+        },
+        {
+          path: "/dashboard/disputes/raise",
+          element: <DisputeForm />,
+        },
+        {
+          path: "/dashboard/disputes/rewards",
+          element: <TokenRewards />,
+        },
       ],
     },
   ]);

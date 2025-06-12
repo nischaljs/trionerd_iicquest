@@ -31,6 +31,7 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
   const [workshopsExpanded, setWorkshopsExpanded] = useState(false);
   const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
   const [collabExpanded, setCollabExpanded] = useState(false);
+  const [contractsExpanded, setContractsExpanded] = useState(false);
 
   const menuItems = [
     { id: "employer-dashboard", label: "Dashboard", icon: Home },
@@ -43,6 +44,17 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
         { id: "post-job", label: "Post New Job" },
         { id: "active-jobs", label: "Active Jobs" },
         { id: "archived-jobs", label: "Archived Jobs" },
+      ],
+    },
+    {
+      id: "contracts",
+      label: "Contracts",
+      icon: FileText,
+      hasDropdown: true,
+      subItems: [
+        { id: "contracts", label: "All Contracts" },
+        { id: "contracts/active", label: "Active Contracts" },
+        { id: "contracts/completed", label: "Completed Contracts" },
       ],
     },
     {
@@ -105,6 +117,9 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
       case "collaborate":
         setCollabExpanded(!collabExpanded);
         break;
+      case "contracts":
+        setContractsExpanded(!contractsExpanded);
+        break;
       default:
         break;
     }
@@ -120,6 +135,8 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
         return analyticsExpanded;
       case "collaborate":
         return collabExpanded;
+      case "contracts":
+        return contractsExpanded;
       default:
         return false;
     }
