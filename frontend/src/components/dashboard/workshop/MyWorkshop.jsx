@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Plus,
   Star,
@@ -13,45 +13,63 @@ import {
   Play,
   Crown,
   Sparkles,
-} from "lucide-react";
+  X,
+  Clock,
+  FileText,
+  Globe,
+  Link,
+} from 'lucide-react';
 
 const MyWorkshop = () => {
-  const [activeTab, setActiveTab] = useState("hosted");
+  const [activeTab, setActiveTab] = useState('hosted');
+  const [showHostModal, setShowHostModal] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    duration: '60',
+    skills: '',
+    maxAttendees: '50',
+    zoomMeetingId: '',
+    zoomPassword: '',
+    isRecorded: true,
+  });
 
   // Mock data for hosted workshops
   const hostedWorkshops = [
     {
       id: 1,
-      title: "Advanced JavaScript Concepts",
-      date: "2025-06-15",
-      time: "10:00 AM",
-      skills: ["JavaScript", "ES6", "Async/Await"],
+      title: 'Advanced JavaScript Concepts',
+      date: '2025-06-15',
+      time: '10:00 AM',
+      skills: ['JavaScript', 'ES6', 'Async/Await'],
       rating: 4.8,
       attendees: 24,
-      zoomLink: "https://zoom.us/j/123456789",
-      status: "upcoming",
+      zoomLink: 'https://zoom.us/j/123456789',
+      status: 'upcoming',
       reviews: 18,
     },
     {
       id: 2,
-      title: "React Hooks Deep Dive",
-      date: "2025-06-08",
-      time: "2:00 PM",
-      skills: ["React", "Hooks", "State Management"],
+      title: 'React Hooks Deep Dive',
+      date: '2025-06-08',
+      time: '2:00 PM',
+      skills: ['React', 'Hooks', 'State Management'],
       rating: 4.9,
       attendees: 32,
-      status: "completed",
+      status: 'completed',
       reviews: 28,
     },
     {
       id: 3,
-      title: "Python for Data Science",
-      date: "2025-05-28",
-      time: "11:00 AM",
-      skills: ["Python", "Pandas", "NumPy"],
+      title: 'Python for Data Science',
+      date: '2025-05-28',
+      time: '11:00 AM',
+      skills: ['Python', 'Pandas', 'NumPy'],
       rating: 4.7,
       attendees: 19,
-      status: "completed",
+      status: 'completed',
       reviews: 15,
     },
   ];
@@ -60,34 +78,34 @@ const MyWorkshop = () => {
   const joinedWorkshops = [
     {
       id: 1,
-      title: "Machine Learning Fundamentals",
-      hostName: "Dr. Priya Sharma",
-      hostBadge: "Guru",
-      date: "2025-06-05",
-      time: "3:00 PM",
-      skills: ["ML", "Scikit-learn", "Algorithms"],
+      title: 'Machine Learning Fundamentals',
+      hostName: 'Dr. Priya Sharma',
+      hostBadge: 'Guru',
+      date: '2025-06-05',
+      time: '3:00 PM',
+      skills: ['ML', 'Scikit-learn', 'Algorithms'],
       myRating: 5,
       replayAvailable: true,
     },
     {
       id: 2,
-      title: "Web Design Principles",
-      hostName: "Amit Thapa",
-      hostBadge: "Acharya",
-      date: "2025-05-20",
-      time: "1:00 PM",
-      skills: ["UI/UX", "Design", "Figma"],
+      title: 'Web Design Principles',
+      hostName: 'Amit Thapa',
+      hostBadge: 'Acharya',
+      date: '2025-05-20',
+      time: '1:00 PM',
+      skills: ['UI/UX', 'Design', 'Figma'],
       myRating: 4,
       replayAvailable: true,
     },
     {
       id: 3,
-      title: "DevOps with Docker",
-      hostName: "Sanjay Gurung",
-      hostBadge: "Expert",
-      date: "2025-05-15",
-      time: "4:00 PM",
-      skills: ["Docker", "DevOps", "Containers"],
+      title: 'DevOps with Docker',
+      hostName: 'Sanjay Gurung',
+      hostBadge: 'Expert',
+      date: '2025-05-15',
+      time: '4:00 PM',
+      skills: ['Docker', 'DevOps', 'Containers'],
       myRating: 5,
       replayAvailable: false,
     },
@@ -95,11 +113,39 @@ const MyWorkshop = () => {
 
   const totalTokens = 1247;
   const suggestedWorkshop = {
-    title: "Advanced React Patterns",
-    host: "Sarah Johnson",
-    date: "2025-06-20",
-    skills: ["React", "Advanced Patterns", "Performance"],
+    title: 'Advanced React Patterns',
+    host: 'Sarah Johnson',
+    date: '2025-06-20',
+    skills: ['React', 'Advanced Patterns', 'Performance'],
     participants: 45,
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Handle form submission here
+    console.log('Workshop data:', formData);
+    setShowHostModal(false);
+    // Reset form
+    setFormData({
+      title: '',
+      description: '',
+      date: '',
+      time: '',
+      duration: '60',
+      skills: '',
+      maxAttendees: '50',
+      zoomMeetingId: '',
+      zoomPassword: '',
+      isRecorded: true,
+    });
   };
 
   const renderStars = (rating) => {
@@ -108,8 +154,8 @@ const MyWorkshop = () => {
         key={i}
         className={`w-4 h-4 ${
           i < Math.floor(rating)
-            ? "fill-yellow-400 text-yellow-400"
-            : "text-gray-300"
+            ? 'fill-yellow-400 text-yellow-400'
+            : 'text-gray-300'
         }`}
       />
     ));
@@ -117,14 +163,14 @@ const MyWorkshop = () => {
 
   const getBadgeColor = (badge) => {
     switch (badge) {
-      case "Guru":
-        return "bg-gradient-to-r from-purple-500 to-pink-500";
-      case "Acharya":
-        return "bg-gradient-to-r from-blue-500 to-indigo-500";
-      case "Expert":
-        return "bg-gradient-to-r from-green-500 to-emerald-500";
+      case 'Guru':
+        return 'bg-gradient-to-r from-purple-500 to-pink-500';
+      case 'Acharya':
+        return 'bg-gradient-to-r from-blue-500 to-indigo-500';
+      case 'Expert':
+        return 'bg-gradient-to-r from-green-500 to-emerald-500';
       default:
-        return "bg-gray-500";
+        return 'bg-gray-500';
     }
   };
 
@@ -142,7 +188,10 @@ const MyWorkshop = () => {
                 Manage your learning journey on ChalkBox
               </p>
             </div>
-            <button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
+            <button
+              onClick={() => setShowHostModal(true)}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+            >
               <Plus className="w-5 h-5" />
               Host Workshop
             </button>
@@ -169,21 +218,21 @@ const MyWorkshop = () => {
         {/* Tab Navigation */}
         <div className="flex bg-white rounded-2xl p-2 shadow-md mb-6 max-w-md">
           <button
-            onClick={() => setActiveTab("hosted")}
+            onClick={() => setActiveTab('hosted')}
             className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${
-              activeTab === "hosted"
-                ? "bg-blue-600 text-white shadow-md"
-                : "text-gray-600 hover:text-blue-600"
+              activeTab === 'hosted'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-600 hover:text-blue-600'
             }`}
           >
             Hosted Workshops
           </button>
           <button
-            onClick={() => setActiveTab("joined")}
+            onClick={() => setActiveTab('joined')}
             className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${
-              activeTab === "joined"
-                ? "bg-blue-600 text-white shadow-md"
-                : "text-gray-600 hover:text-blue-600"
+              activeTab === 'joined'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-600 hover:text-blue-600'
             }`}
           >
             Joined Workshops
@@ -193,7 +242,7 @@ const MyWorkshop = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-3">
-            {activeTab === "hosted" && (
+            {activeTab === 'hosted' && (
               <div className="space-y-4">
                 {hostedWorkshops.map((workshop) => (
                   <div
@@ -208,14 +257,14 @@ const MyWorkshop = () => {
                           </h3>
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              workshop.status === "upcoming"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
+                              workshop.status === 'upcoming'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            {workshop.status === "upcoming"
-                              ? "Upcoming"
-                              : "Completed"}
+                            {workshop.status === 'upcoming'
+                              ? 'Upcoming'
+                              : 'Completed'}
                           </span>
                         </div>
 
@@ -248,7 +297,7 @@ const MyWorkshop = () => {
                               {workshop.rating}
                             </span>
                           </div>
-                          {workshop.status === "completed" && (
+                          {workshop.status === 'completed' && (
                             <button className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium">
                               <Eye className="w-4 h-4" />
                               View Reviews ({workshop.reviews})
@@ -259,7 +308,7 @@ const MyWorkshop = () => {
 
                       <div className="flex flex-col gap-2">
                         {workshop.zoomLink &&
-                          workshop.status === "upcoming" && (
+                          workshop.status === 'upcoming' && (
                             <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors">
                               <Video className="w-4 h-4" />
                               Join Zoom
@@ -272,7 +321,7 @@ const MyWorkshop = () => {
               </div>
             )}
 
-            {activeTab === "joined" && (
+            {activeTab === 'joined' && (
               <div className="space-y-4">
                 {joinedWorkshops.map((workshop) => (
                   <div
@@ -415,6 +464,253 @@ const MyWorkshop = () => {
           </div>
         </div>
       </div>
+
+      {/* Host Workshop Modal */}
+      {showHostModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-xl">
+                  <Video className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Host New Workshop
+                  </h2>
+                  <p className="text-gray-600">
+                    Create an engaging learning experience
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowHostModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {/* Workshop Details */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-blue-600" />
+                  Workshop Details
+                </h3>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Workshop Title *
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="e.g., Advanced React Patterns"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description *
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                    placeholder="Describe what participants will learn..."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Skills/Tags *
+                  </label>
+                  <input
+                    type="text"
+                    name="skills"
+                    value={formData.skills}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="React, JavaScript, Hooks (comma separated)"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Schedule */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                  Schedule
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Date *
+                    </label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Time *
+                    </label>
+                    <input
+                      type="time"
+                      name="time"
+                      value={formData.time}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Duration (minutes)
+                    </label>
+                    <select
+                      name="duration"
+                      value={formData.duration}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    >
+                      <option value="30">30 minutes</option>
+                      <option value="60">1 hour</option>
+                      <option value="90">1.5 hours</option>
+                      <option value="120">2 hours</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Max Attendees
+                    </label>
+                    <input
+                      type="number"
+                      name="maxAttendees"
+                      value={formData.maxAttendees}
+                      onChange={handleInputChange}
+                      min="1"
+                      max="500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Zoom Integration */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Video className="w-5 h-5 text-green-600" />
+                  Zoom Meeting Details
+                </h3>
+
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-green-100 p-2 rounded-lg">
+                      <Link className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-green-900 mb-1">
+                        Zoom Integration
+                      </h4>
+                      <p className="text-sm text-green-700">
+                        Connect your Zoom account or manually enter meeting
+                        details
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Zoom Meeting ID *
+                  </label>
+                  <input
+                    type="text"
+                    name="zoomMeetingId"
+                    value={formData.zoomMeetingId}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="123-456-7890"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Meeting Password (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="zoomPassword"
+                    value={formData.zoomPassword}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="Enter meeting password"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="isRecorded"
+                    name="isRecorded"
+                    checked={formData.isRecorded}
+                    onChange={handleInputChange}
+                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label
+                    htmlFor="isRecorded"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Record this workshop for replay
+                  </label>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setShowHostModal(false)}
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <Video className="w-5 h-5" />
+                  Create Workshop
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
