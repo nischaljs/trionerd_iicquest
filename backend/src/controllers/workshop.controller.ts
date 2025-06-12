@@ -136,14 +136,64 @@ export const getWorkshopById = async (req: Request, res: Response) => {
 // Create new workshop
 export const createWorkshop = async (req: Request, res: Response) => {
   try {
-    const { title, description, zoomLink, price, skillsTaught, startDate, endDate } = req.body;
+    const { 
+      title, 
+      description, 
+      zoomLink, 
+      price, 
+      skillsTaught, 
+      startDate, 
+      endDate,
+      totalSeats,
+      outcomes,
+      rules,
+      zoomStatus 
+    } = req.body;
     const hostId = (req as any).user.id; // From auth middleware
+
+    // Required fields validation
+    if (!title) {
+      return res.status(400).json({ message: 'Title is required' });
+    }
+    if (!description) {
+      return res.status(400).json({ message: 'Description is required' });
+    }
+    if (!zoomLink) {
+      return res.status(400).json({ message: 'Zoom link is required' });
+    }
+    if (!price || isNaN(parseFloat(price))) {
+      return res.status(400).json({ message: 'Valid price is required' });
+    }
+    if (!skillsTaught || !Array.isArray(skillsTaught) || skillsTaught.length === 0) {
+      return res.status(400).json({ message: 'At least one skill is required' });
+    }
+    if (!startDate) {
+      return res.status(400).json({ message: 'Start date is required' });
+    }
+    if (!endDate) {
+      return res.status(400).json({ message: 'End date is required' });
+    }
+    if (!totalSeats || isNaN(parseInt(totalSeats)) || parseInt(totalSeats) <= 0) {
+      return res.status(400).json({ message: 'Valid total seats is required' });
+    }
+    if (!outcomes || !Array.isArray(outcomes) || outcomes.length === 0) {
+      return res.status(400).json({ message: 'At least one outcome is required' });
+    }
+    if (!rules || !Array.isArray(rules) || rules.length === 0) {
+      return res.status(400).json({ message: 'At least one rule is required' });
+    }
 
     // Validate dates
     const start = new Date(startDate);
     const end = new Date(endDate);
     const now = new Date();
 
+    if (isNaN(start.getTime())) {
+      return res.status(400).json({ message: 'Invalid start date format' });
+    }
+    if (isNaN(end.getTime())) {
+      return res.status(400).json({ message: 'Invalid end date format' });
+    }
     if (start < now) {
       return res.status(400).json({ message: 'Start date must be in the future' });
     }
@@ -151,23 +201,54 @@ export const createWorkshop = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'End date must be after start date' });
     }
 
+    // Validate price
+    const parsedPrice = parseFloat(price);
+    if (parsedPrice < 0) {
+      return res.status(400).json({ message: 'Price cannot be negative' });
+    }
+
+    // Validate total seats
+    const parsedTotalSeats = parseInt(totalSeats);
+    if (parsedTotalSeats <= 0) {
+      return res.status(400).json({ message: 'Total seats must be greater than 0' });
+    }
+
     const workshop = await prisma.workshop.create({
       data: {
         title,
         description,
         zoomLink,
-        price: parseFloat(price),
+        price: parsedPrice,
         skillsTaught,
         hostId,
         startDate: start,
         endDate: end,
-        status: 'UPCOMING'
+        status: 'UPCOMING',
+        totalSeats: parsedTotalSeats,
+        outcomes,
+        rules,
+        zoomStatus: zoomStatus || 'Link will be active 30 minutes before event'
+      },
+      include: {
+        host: {
+          select: {
+            id: true,
+            name: true,
+            profilePic: true,
+            badges: {
+              include: {
+                badge: true
+              }
+            }
+          }
+        }
       }
     });
 
     res.status(201).json(workshop);
-  } catch (error) {
-    res.status(500).json({ message: 'Error creating workshop', error });
+  } catch (error :any) {
+    console.error('Error creating workshop:', error);
+    res.status(500).json({ message: 'Error creating workshop', error: error.message });
   }
 };
 

@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 // console.log("API Base URL:", process.env.REACT_APP_HOST);
 
 const api = axios.create({
-  baseURL: `http://${import.meta.env.VITE_HOST || "localhost:5050"}`, // Ensure VITE_HOST is defined in .env
+  baseURL: `http://localhost:3000`, // Ensure VITE_HOST is defined in .env
   withCredentials: true, // For cookies/auth
   headers: {
     "Content-Type": "application/json", // Ensures proper JSON communication
@@ -14,7 +14,7 @@ const api = axios.create({
 
 // Utility function to retrieve the access token from cookies using js-cookie
 const getAuthTokenFromCookies = () => {
-  const token = Cookies.get("accessToken");
+  const token = Cookies.get("token");
   return token; // Retrieve token directly using js-cookie
 };
 
@@ -30,7 +30,7 @@ export const get = async (endpoint, params = {}) => {
     return response.data; // Return data from the response
   } catch (error) {
     handleError(error);
-    throw error; // Re-throw error for further handling
+    throw error;
   }
 };
 

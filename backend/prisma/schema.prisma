@@ -28,6 +28,15 @@ model User {
   reviewsGiven      Review[]       @relation("Reviewer")
   reviewsReceived   Review[]       @relation("ReviewTarget")
   createdAt         DateTime       @default(now())
+  studentInvites    JobInvite[]    @relation("StudentInvites")
+  employerInvites    JobInvite[]   @relation("EmployerInvites")
+  raisedDisputes    Dispute[]    @relation("RaisedDisputes")
+  respondedDisputes Dispute[]    @relation("RespondedDisputes")
+  votes             Vote[]       @relation("Votes")
+  votedFor          Vote[]       @relation("VotedFor")
+  wonDisputes       DisputeResolution[] @relation("WonDisputes")
+  resolvedDisputes  DisputeResolution[] @relation("ResolvedDisputes")
+  tokenRewards      TokenReward[]
 
   @@index([skills])
   @@index([tokens])
@@ -82,11 +91,14 @@ enum BadgeTier {
 model Job {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   title           String
+  subtitle        String?  // Added for job subtitle
   description     String
   requiredSkills  String[]
   tags            String[]
-  type            String   // FULL_TIME, PART_TIME, INTERNSHIP
+  type            JobType  // Changed to enum
   location        String
+  locationType    String   // Added for remote/hybrid/onsite
+  budget          String?  // Added for job budget
   status          JobStatus @default(OPEN)
   isVerified      Boolean  @default(false)
   employerId      String   @db.ObjectId
@@ -96,11 +108,24 @@ model Job {
   reviews         Review[] @relation("JobReviews")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  postedTime      String?  // Added for frontend display
+  proposals       Int      @default(0) // Added for tracking number of proposals
+  aiMatch         Float?   // Added for AI matching score
+  invites         JobInvite[]
 
   @@unique([title, employerId])
   @@index([employerId])
   @@index([status])
   @@index([type])
+  @@index([locationType])
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  FREELANCE
+  CONTRACT
 }
 
 enum JobStatus {
@@ -146,6 +171,10 @@ model Workshop {
   status       WorkshopStatus @default(UPCOMING)
   startDate    DateTime
   endDate      DateTime
+  totalSeats   Int
+  outcomes     String[]
+  rules        String[]
+  zoomStatus   String?        // Optional field for status message
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
@@ -177,6 +206,7 @@ model Contract {
   status          ContractStatus @default(PENDING)
   createdAt       DateTime       @default(now())
   completedAt     DateTime?
+  disputes         Dispute[]
 
   @@index([studentId])
   @@index([employerId])
@@ -246,4 +276,98 @@ enum ProjectDifficulty {
   EASY
   INTERMEDIATE
   ADVANCED
+}
+
+model JobInvite {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  jobId     String   @db.ObjectId
+  studentId String   @db.ObjectId
+  employerId String  @db.ObjectId
+  status    String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  job      Job    @relation(fields: [jobId], references: [id])
+  student  User   @relation("StudentInvites", fields: [studentId], references: [id])
+  employer User   @relation("EmployerInvites", fields: [employerId], references: [id])
+
+  @@unique([jobId, studentId])
+  @@index([studentId])
+  @@index([employerId])
+}
+
+model Dispute {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  contract        Contract       @relation(fields: [contractId], references: [id])
+  contractId      String         @db.ObjectId
+  raisedBy        User           @relation("RaisedDisputes", fields: [raisedById], references: [id])
+  raisedById      String         @db.ObjectId
+  reason          String
+  evidence        String
+  response        String?
+  respondedBy     User?          @relation("RespondedDisputes", fields: [respondedById], references: [id])
+  respondedById   String?        @db.ObjectId
+  blockchainHash  String         // Hash of dispute data for immutability
+  status          DisputeStatus  @default(OPEN)
+  votes           Vote[]
+  resolution      DisputeResolution?
+  tokenRewards    TokenReward[]  @relation("TokenRewards")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([contractId])
+  @@index([raisedById])
+  @@index([respondedById])
+  @@index([status])
+}
+
+model Vote {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  dispute   Dispute  @relation(fields: [disputeId], references: [id])
+  disputeId String   @db.ObjectId
+  voter     User     @relation("Votes", fields: [voterId], references: [id])
+  voterId   String   @db.ObjectId
+  votedFor  User     @relation("VotedFor", fields: [votedForId], references: [id])
+  votedForId String  @db.ObjectId
+  createdAt DateTime @default(now())
+
+  @@unique([disputeId, voterId])
+  @@index([disputeId])
+  @@index([voterId])
+  @@index([votedForId])
+}
+
+model DisputeResolution {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  dispute   Dispute  @relation(fields: [disputeId], references: [id])
+  disputeId String   @db.ObjectId
+  winner    User     @relation("WonDisputes", fields: [winnerId], references: [id])
+  winnerId  String   @db.ObjectId
+  resolver  User     @relation("ResolvedDisputes", fields: [resolverId], references: [id])
+  resolverId String  @db.ObjectId
+  createdAt DateTime @default(now())
+
+  @@unique([disputeId])
+  @@index([winnerId])
+  @@index([resolverId])
+}
+
+model TokenReward {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  amount    Int
+  reason    String
+  dispute   Dispute? @relation("TokenRewards", fields: [disputeId], references: [id])
+  disputeId String?  @db.ObjectId
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([disputeId])
+}
+
+enum DisputeStatus {
+  OPEN
+  RESPONDED
+  RESOLVED
 }
