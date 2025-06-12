@@ -42,7 +42,6 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
       subItems: [
         { id: "post-job", label: "Post New Job" },
         { id: "active-jobs", label: "Active Jobs" },
-        { id: "job-applications", label: "Applications" },
         { id: "archived-jobs", label: "Archived Jobs" },
       ],
     },
@@ -74,19 +73,22 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
       ],
     },
     { id: "candidates", label: "Talent Pool", icon: Users },
+    // {
+    //   id: "analytics",
+    //   label: "Analytics",
+    //   icon: BarChart3,
+    //   hasDropdown: true,
+    //   subItems: [
+    //     { id: "hiring-metrics", label: "Hiring Metrics" },
+    //     { id: "workshop-analytics", label: "Workshop Analytics" },
+    //     { id: "engagement-reports", label: "Engagement Reports" },
+    //   ],
+    // },
     {
-      id: "analytics",
-      label: "Analytics",
-      icon: BarChart3,
-      hasDropdown: true,
-      subItems: [
-        { id: "hiring-metrics", label: "Hiring Metrics" },
-        { id: "workshop-analytics", label: "Workshop Analytics" },
-        { id: "engagement-reports", label: "Engagement Reports" },
-      ],
+      id: "employer-dashboard/company-profile",
+      label: "Company Profile",
+      icon: Building2,
     },
-    { id: "company-profile", label: "Company Profile", icon: Building2 },
-    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   const handleDropdownClick = (dropdownType) => {

@@ -14,7 +14,9 @@ import EDashboard from "./components/edasboard/EDashboard";
 import JobPostingForm from "./components/edasboard/FreelanceProjectForm ";
 import Collaboration from "./components/edasboard/Collaboration";
 import FreelanceProjectForm from "./components/edasboard/FreelanceProjectForm ";
-
+import EmployerJobDashboard from "./components/edasboard/EmployerJobDashboard";
+import OpenSourceContributions from "./components/edasboard/OpenSourceContributions";
+import CompanyProfile from "./components/edasboard/CompanyProfile";
 
 const App = () => {
   const router = createBrowserRouter([
@@ -27,8 +29,8 @@ const App = () => {
       element: <LoginForm />,
     },
     {
-      path:"/employer-dashboard",
-      element:<ChalkBoxEmployerDashboard />,
+      path: "/employer-dashboard",
+      element: <ChalkBoxEmployerDashboard />,
       children: [
         {
           path: "",
@@ -36,16 +38,26 @@ const App = () => {
         },
         {
           path: "/employer-dashboard/post-open-source-project",
-          element: <Collaboration />
+          element: <Collaboration />,
+        },
+        {
+          path: "/employer-dashboard/active-jobs",
+          element: <EmployerJobDashboard />,
         },
         {
           path: "/employer-dashboard/post-job",
           element: <FreelanceProjectForm />,
-        }
+        },
+        {
+          path: "/employer-dashboard/opensource-contributer",
+          element: <OpenSourceContributions />,
+        },
+        {
+          path: "/employer-dashboard/company-profile",
+          element: <CompanyProfile />,
+        },
       ],
-
     },
-
 
     {
       path: "/dashboard",
