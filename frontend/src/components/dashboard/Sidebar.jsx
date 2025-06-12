@@ -66,6 +66,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }) => {
       subItems: [
         { id: "my-workshops", label: "My Workshops" },
         { id: "join-workshops", label: "Join Workshop" },
+        { id: "workshops-requests", label: " Workshop Request" },
       ],
     },
     { id: "dashboard/collaborate", label: "Collaborate", icon: Users },
