@@ -9,7 +9,22 @@ interface JobWithScore {
   status: string;
   applications: { id: string; status: string }[];
   contracts: { id: string; status: string }[];
-  similarity: { score: number };
+  employer: {
+    id: string;
+    name: string;
+    profilePic: string | null;
+    badges: { badge: { tier: string } }[];
+  };
+  similarity: { score: number; matchPercentage: number };
+  debug: {
+    userSkills: string[];
+    jobSkills: string[];
+    hasAppliedBefore: boolean;
+    badgeCount: number;
+    status: string;
+    applications: number;
+    activeContracts: number;
+  };
 }
 
 interface StudentWithScore {
@@ -17,9 +32,15 @@ interface StudentWithScore {
   name: string;
   profilePic: string | null;
   skills: string[];
-  applications: { jobId: string; status: string }[];
   badges: { badge: { tier: string } }[];
-  similarity: { score: number };
+  applications: { jobId: string; status: string }[];
+  similarity: { score: number; matchPercentage: number };
+  debug: {
+    studentSkills: string[];
+    jobSkills: string[];
+    hasAppliedBefore: boolean;
+    badgeCount: number;
+  };
 }
 
 // Helper function to validate MongoDB ObjectId
@@ -534,7 +555,7 @@ export const getJobSuggestions = async (req: Request, res: Response) => {
     });
 
     // Calculate similarity scores for each job
-    const jobsWithScores = jobs.map((job: JobWithScore) => {
+    const jobsWithScores = jobs.map((job) => {
       const hasAppliedBefore = user.applications.some((app: { jobId: string }) => app.jobId === job.id);
       const similarity = calculateSimilarityScore(
         user.skills,
@@ -555,13 +576,13 @@ export const getJobSuggestions = async (req: Request, res: Response) => {
           applications: job.applications.length,
           activeContracts: job.contracts.filter((c: { status: string }) => c.status === 'ACTIVE').length
         }
-      };
+      } as unknown as JobWithScore;
     });
 
     // Filter out jobs with zero similarity and sort by similarity score
     const filteredJobs = jobsWithScores
-      .filter((job: JobWithScore) => job.similarity.score >= minSimilarity)
-      .sort((a: JobWithScore, b: JobWithScore) => b.similarity.score - a.similarity.score)
+      .filter((job) => job.similarity.score >= minSimilarity)
+      .sort((a, b) => b.similarity.score - a.similarity.score)
       .slice(0, limit);
 
     res.json({
@@ -956,7 +977,6 @@ export const getSuggestedFreelancers = async (req: Request, res: Response) => {
     });
 
     // Calculate similarity scores for each student
-
     const studentsWithScores = students.map(student => {
       const hasAppliedBefore = student.applications.some(app => app.jobId === id);
       const similarity = calculateSimilarityScore(
@@ -967,11 +987,7 @@ export const getSuggestedFreelancers = async (req: Request, res: Response) => {
       );
 
       return {
-        id: student.id,
-        name: student.name,
-        profilePic: student.profilePic,
-        skills: student.skills,
-        badges: student.badges.map((b: { badge: { tier: string } }) => b.badge),
+        ...student,
         similarity,
         debug: {
           studentSkills: student.skills,
@@ -979,13 +995,13 @@ export const getSuggestedFreelancers = async (req: Request, res: Response) => {
           hasAppliedBefore,
           badgeCount: student.badges.length
         }
-      };
+      } as unknown as StudentWithScore;
     });
 
     // Filter out students with zero similarity and sort by similarity score
     const filteredStudents = studentsWithScores
-      .filter((student: StudentWithScore) => student.similarity.score >= minSimilarity)
-      .sort((a: StudentWithScore, b: StudentWithScore) => b.similarity.score - a.similarity.score)
+      .filter((student) => student.similarity.score >= minSimilarity)
+      .sort((a, b) => b.similarity.score - a.similarity.score)
       .slice(0, limit);
 
     res.json({
