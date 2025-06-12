@@ -12,7 +12,7 @@ const AuthContextProvider = ({ children }) => {
 
   const login = async (inputs) => {
     const res = await post("/api/users/login", inputs);
-    setCurrentUser(res.others);
+    setCurrentUser(res.user);
     return res;
     // console.log(res);
   };
