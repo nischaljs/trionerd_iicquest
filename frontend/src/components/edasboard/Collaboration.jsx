@@ -166,7 +166,7 @@ const Collaboration = () => {
 
             {/* Required Skills */}
             <div>
-              <label className="block text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <label className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                 <Code className="w-5 h-5 mr-2" style={{color: '#2A66DE'}} />
                 Required Skills
               </label>
@@ -244,7 +244,7 @@ const Collaboration = () => {
 
             {/* Project Goals */}
             <div>
-              <label className="block text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <label className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                 <Target className="w-5 h-5 mr-2" style={{color: '#2A66DE'}} />
                 Project Goals
               </label>
@@ -304,7 +304,7 @@ const Collaboration = () => {
 
             {/* Description */}
             <div>
-              <label className="block text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <label className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                 <FileText className="w-5 h-5 mr-2" style={{color: '#2A66DE'}} />
                 Description
               </label>
@@ -323,7 +323,7 @@ const Collaboration = () => {
 
             {/* Contribution Guidelines */}
             <div>
-              <label className="block text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <label className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                 <Users className="w-5 h-5 mr-2" style={{color: '#2A66DE'}} />
                 Contribution Guidelines
               </label>
@@ -342,7 +342,7 @@ const Collaboration = () => {
 
             {/* Good First Issues */}
             <div>
-              <label className="block text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <label className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                 <CheckCircle className="w-5 h-5 mr-2" style={{color: '#2A66DE'}} />
                 Good First Issues
               </label>

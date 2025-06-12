@@ -39,7 +39,7 @@ const App = () => {
           element: <Collaboration />
         },
         {
-          path: "/employer-dashboard/post-freelance-project",
+          path: "/employer-dashboard/post-job",
           element: <FreelanceProjectForm />,
         }
       ],
