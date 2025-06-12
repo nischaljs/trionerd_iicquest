@@ -1,20 +1,5 @@
-import React, { useState } from "react";
-import {
-  Search,
-  Filter,
-  Calendar,
-  MapPin,
-  Star,
-  Award,
-  Users,
-  Book,
-  MessageCircle,
-  Eye,
-  X,
-  Check,
-  ExternalLink,
-  Hash,
-} from "lucide-react";
+import React, { useState } from 'react';
+import { Search, Filter, Calendar, MapPin, Star, Award, Users, Book, MessageCircle, Eye, X, Check, ExternalLink, Hash, Send, UserCheck, Building2 } from 'lucide-react';
 
 const ProposalInvitationsPanel = () => {
   const [activeTab, setActiveTab] = useState("sent");
@@ -388,17 +373,9 @@ const ProposalInvitationsPanel = () => {
   );
 
   const tabs = [
-    { id: "sent", label: "Sent Proposals", count: sentProposals.length },
-    {
-      id: "accepted",
-      label: "Accepted by Teachers",
-      count: acceptedByTeachers.length,
-    },
-    {
-      id: "companies",
-      label: "Invitations Projects",
-      count: companyResponses.length,
-    },
+    { id: 'sent', label: 'Sent Proposals', count: sentProposals.length, icon: Send },
+    { id: 'accepted', label: 'Accepted proposals', count: acceptedByTeachers.length, icon: UserCheck },
+    { id: 'companies', label: 'Invitations Projects', count: companyResponses.length, icon: Building2 }
   ];
 
   return (
@@ -455,22 +432,35 @@ const ProposalInvitationsPanel = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
           <div className="border-b border-gray-200">
             <nav className="flex">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === tab.id
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  {tab.label}
-                  <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
+              {tabs.map((tab) => {
+                const IconComponent = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-3 px-6 py-4 text-sm font-medium border-b-2 transition-all duration-200 relative ${
+                      activeTab === tab.id
+                        ? 'border-blue-600 text-blue-600 bg-blue-50/50'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <IconComponent className={`w-4 h-4 ${
+                      activeTab === tab.id ? 'text-blue-600' : 'text-gray-400'
+                    }`} />
+                    <span>{tab.label}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      activeTab === tab.id 
+                        ? 'bg-blue-100 text-blue-700' 
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {tab.count}
+                    </span>
+                    {activeTab === tab.id && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" />
+                    )}
+                  </button>
+                );
+              })}
             </nav>
           </div>
 
