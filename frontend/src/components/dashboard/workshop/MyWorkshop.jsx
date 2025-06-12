@@ -17,15 +17,26 @@ import {
   X,
   Link,
   Loader2,
+  RefreshCw,
 } from 'lucide-react';
+import { get } from '../../../utils/api';
+import Hacker from '../../../assets/hacker.jpg';
 
 const MyWorkshop = () => {
   const [activeTab, setActiveTab] = useState('hosted');
   const [showHostModal, setShowHostModal] = useState(false);
   const [hostedWorkshops, setHostedWorkshops] = useState([]);
   const [joinedWorkshops, setJoinedWorkshops] = useState([]);
+  const [suggestedWorkshop, setSuggestedWorkshop] = useState(null);
+  const [suggestionsMetadata, setSuggestionsMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [joined, setJoined] = useState(false);
+  const handleJoin = () => {
+    setJoined(true);
+    // You can also trigger API call here if needed
+  };
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -39,17 +50,30 @@ const MyWorkshop = () => {
     isRecorded: true,
   });
 
-  const totalTokens = 1247;
+  // Mock token - in a real app, this would come from your auth system
 
-  // API Functions
+  // API Functions with authentication
   const fetchWorkshops = async (status = 'UPCOMING') => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/workshops?page=1&limit=10&status=${status}`
+        `http://localhost:3000/api/workshops?page=1&limit=10&status=${status}`,
+        {
+          withCredentials: true,
+        }
       );
       return response.data;
     } catch (error) {
       console.error('Error fetching workshops:', error);
+      throw error;
+    }
+  };
+
+  const fetchSuggestions = async () => {
+    try {
+      const data = await get('/api/workshops/suggestions', { limit: 1 });
+      return data;
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
       throw error;
     }
   };
@@ -90,6 +114,41 @@ const MyWorkshop = () => {
 
     loadWorkshops();
   }, []);
+
+  // Load suggestions data
+  const loadSuggestions = async () => {
+    try {
+      setSuggestionsLoading(true);
+      const suggestionsData = await fetchSuggestions();
+
+      if (suggestionsData.status === 'success') {
+        if (suggestionsData.data && suggestionsData.data.length > 0) {
+          setSuggestedWorkshop(suggestionsData.data[0]);
+        } else {
+          setSuggestedWorkshop(null);
+        }
+
+        // Store metadata for additional info
+        if (suggestionsData.meta) {
+          setSuggestionsMetadata(suggestionsData.meta);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading suggestions:', err);
+      // Don't set error state for suggestions, just log it
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
+  // Initial load of suggestions
+  useEffect(() => {
+    loadSuggestions();
+  }, []);
+
+  const handleRefreshSuggestions = () => {
+    loadSuggestions();
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -206,14 +265,6 @@ const MyWorkshop = () => {
     return (sum / reviews.length).toFixed(1);
   };
 
-  const suggestedWorkshop = {
-    title: 'Advanced React Patterns',
-    host: 'Sarah Johnson',
-    date: '2025-06-20',
-    skills: ['React', 'Advanced Patterns', 'Performance'],
-    participants: 45,
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -271,9 +322,10 @@ const MyWorkshop = () => {
                 <h3 className="text-lg font-semibold mb-1">
                   Total Tokens Earned
                 </h3>
-                <p className="text-3xl font-bold">
-                  {totalTokens.toLocaleString()}
-                </p>
+                <div className="font-semibold">
+                  NPR {suggestedWorkshop?.price} •{' '}
+                  {suggestedWorkshop?.tokensEarned} tokens
+                </div>
               </div>
               <div className="bg-white/20 p-3 rounded-full">
                 <Award className="w-8 h-8" />
@@ -512,82 +564,217 @@ const MyWorkshop = () => {
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            {/* Suggested Workshop */}
-            <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl p-6 shadow-lg mb-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5" />
-                <h3 className="font-bold text-lg">Suggested for You</h3>
-              </div>
-
-              <h4 className="font-semibold text-lg mb-2">
-                {suggestedWorkshop.title}
-              </h4>
-              <p className="text-purple-100 text-sm mb-2">
-                by {suggestedWorkshop.host}
-              </p>
-              <p className="text-purple-100 text-sm mb-4">
-                {suggestedWorkshop.date}
-              </p>
-
-              <div className="flex flex-wrap gap-1 mb-4">
-                {suggestedWorkshop.skills.map((skill, index) => (
-                  <span
-                    key={index}
-                    className="bg-white/20 text-white px-2 py-1 rounded-full text-xs"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-purple-100">
-                  {suggestedWorkshop.participants} interested
-                </span>
-                <button className="bg-white text-purple-600 px-4 py-2 rounded-xl font-semibold text-sm hover:bg-purple-50 transition-colors">
-                  Join Now
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="bg-white rounded-2xl p-6 shadow-md">
-              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
-                Your Stats
-              </h3>
-
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Workshops Hosted</span>
-                  <span className="font-bold text-blue-600">
-                    {hostedWorkshops.length}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Workshops Joined</span>
-                  <span className="font-bold text-green-600">
-                    {joinedWorkshops.length}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Avg. Rating</span>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-bold">4.8</span>
+          {/* Sidebar - Fixed position like Facebook */}
+          <div className="lg:col-span-1 relative">
+            <div className="lg:sticky lg:top-6 space-y-6">
+              {/* Suggested Workshop */}
+              <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    <h3 className="font-bold text-lg">Suggested for You</h3>
                   </div>
+                  <button
+                    onClick={handleRefreshSuggestions}
+                    disabled={suggestionsLoading}
+                    className="p-1 hover:bg-white/20 rounded-full transition-colors"
+                    title="Refresh suggestions"
+                  >
+                    <RefreshCw
+                      className={`w-4 h-4 ${
+                        suggestionsLoading ? 'animate-spin' : ''
+                      }`}
+                    />
+                  </button>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Total Students Taught</span>
-                  <span className="font-bold text-purple-600">
-                    {hostedWorkshops.reduce(
-                      (total, workshop) =>
-                        total + (workshop.attendees?.length || 0),
-                      0
+
+                {suggestionsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-white" />
+                  </div>
+                ) : suggestedWorkshop ? (
+                  <>
+                    <h4 className="font-semibold text-lg mb-2">
+                      {suggestedWorkshop.title}
+                    </h4>
+
+                    <div className="flex items-center gap-2 mb-2">
+                      {suggestedWorkshop.host?.profilePic && (
+                        <div className="w-6 h-6 rounded-full overflow-hidden bg-white/20">
+                          <img
+                            src={`${
+                              suggestedWorkshop.host.profilePic || { Hacker }
+                            }`}
+                            alt={suggestedWorkshop.host.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <p className="text-purple-100 text-sm">
+                        by {suggestedWorkshop.host?.name}
+                      </p>
+                    </div>
+
+                    <p className="text-purple-100 text-sm mb-2">
+                      {formatDate(suggestedWorkshop.startDate)}
+                    </p>
+
+                    {/* Match percentage */}
+                    {suggestedWorkshop.similarity && (
+                      <div className="bg-white/20 rounded-lg p-2 mb-4">
+                        <div className="flex items-center justify-between text-sm">
+                          <span>Match</span>
+                          <span className="font-semibold">
+                            {suggestedWorkshop.similarity.matchPercentage}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-white/20 rounded-full h-2 mt-1">
+                          <div
+                            className="bg-white h-2 rounded-full transition-all duration-300"
+                            style={{
+                              width: `${suggestedWorkshop.similarity.matchPercentage}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
                     )}
-                  </span>
+
+                    {/* Skills */}
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      {suggestedWorkshop.skillsTaught?.map((skill, index) => (
+                        <span
+                          key={index}
+                          className="bg-white/20 text-white px-2 py-1 rounded-full text-xs"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Outcomes */}
+                    {suggestedWorkshop.outcomes &&
+                      suggestedWorkshop.outcomes.length > 0 && (
+                        <div className="mb-4">
+                          <h5 className="text-sm font-semibold mb-1">
+                            You'll learn:
+                          </h5>
+                          <ul className="text-xs text-purple-100 space-y-1 list-disc pl-4">
+                            {suggestedWorkshop.outcomes
+                              .slice(0, 2)
+                              .map((outcome, index) => (
+                                <li key={index}>{outcome}</li>
+                              ))}
+                            {suggestedWorkshop.outcomes.length > 2 && (
+                              <li>
+                                + {suggestedWorkshop.outcomes.length - 2} more
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-purple-100">
+                        <div className="font-semibold">
+                          {/* ${suggestedWorkshop.price} */}
+                        </div>
+                        <div className="flex items-center gap-1 mt-1">
+                          <span
+                            className={`px-1 py-0.5 rounded text-xs ${getStatusColor(
+                              suggestedWorkshop.status
+                            )}`}
+                          >
+                            {getStatusText(suggestedWorkshop.status)}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleJoin}
+                        className={`${
+                          joined
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-white text-purple-600'
+                        } px-4 py-2 rounded-xl font-semibold text-sm hover:bg-purple-500 transition-colors`}
+                        disabled={joined} // optional: disable after join
+                      >
+                        {joined ? 'Joined' : 'Join Now'}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-purple-100 text-sm">
+                      No suggestions available at the moment
+                    </p>
+                    <button
+                      onClick={handleRefreshSuggestions}
+                      className="mt-4 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl text-sm transition-colors flex items-center gap-2 mx-auto"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Try Again
+                    </button>
+                  </div>
+                )}
+
+                {/* User skills from metadata */}
+                {suggestionsMetadata &&
+                  suggestionsMetadata.userSkills &&
+                  suggestionsMetadata.userSkills.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-white/20">
+                      <p className="text-xs text-purple-100 mb-2">
+                        Based on your skills:
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {suggestionsMetadata.userSkills.map((skill, index) => (
+                          <span
+                            key={index}
+                            className="bg-white/10 text-purple-100 px-2 py-0.5 rounded-full text-xs"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+              </div>
+
+              {/* Quick Stats */}
+              <div className="bg-white rounded-2xl p-6 shadow-md">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-blue-600" />
+                  Your Stats
+                </h3>
+
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Workshops Hosted</span>
+                    <span className="font-bold text-blue-600">
+                      {hostedWorkshops.length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Workshops Joined</span>
+                    <span className="font-bold text-green-600">
+                      {joinedWorkshops.length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Avg. Rating</span>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="font-bold">4.8</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Total Students Taught</span>
+                    <span className="font-bold text-purple-600">
+                      {hostedWorkshops.reduce(
+                        (total, workshop) =>
+                          total + (workshop.attendees?.length || 0),
+                        0
+                      )}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
