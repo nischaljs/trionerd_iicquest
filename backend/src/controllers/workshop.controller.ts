@@ -227,6 +227,7 @@ export const createWorkshop = async (req: Request, res: Response) => {
         totalSeats: parsedTotalSeats,
         outcomes,
         rules,
+         tokensEarned: parseInt(req.body.tokensEarned) || 0,
         zoomStatus: zoomStatus || 'Link will be active 30 minutes before event'
       },
       include: {

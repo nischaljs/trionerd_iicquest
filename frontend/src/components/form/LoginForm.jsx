@@ -27,6 +27,8 @@ export default function LoginForm() {
     try {
       const res = await login(credentials);
       console.log(res, "Login Response");
+      console.log("User Role:", res.user);
+
       if (res.user.role === "STUDENT") {
         navigate("/dashboard");
       } else if (res.user.role === "EMPLOYER") {
