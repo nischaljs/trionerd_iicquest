@@ -1,255 +1,222 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Filter, Star, Award, Calendar, MessageCircle, FileText, X, Eye, Users, BookOpen, ChevronDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Filter, Calendar, MapPin, Star, Award, Users, Book, MessageCircle, Eye, X, Check, ExternalLink, Hash } from 'lucide-react';
 
 const ProposalInvitationsPanel = () => {
   const [activeTab, setActiveTab] = useState('sent');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSkill, setSelectedSkill] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [sortBy, setSortBy] = useState('recent');
-  const [showFilters, setShowFilters] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState({
+    skill: '',
+    type: '',
+    status: '',
+    sort: 'recent'
+  });
 
-  // Mock data for sent proposals
+  // Sample data
   const sentProposals = [
     {
       id: 1,
-      teacher: {
-        name: "Dr. Sarah Chen",
-        email: "sarah.chen@university.edu",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b69bbfe1?w=150&h=150&fit=crop&crop=face",
-        bio: "Machine Learning expert with 10+ years experience in AI research and development. Passionate about teaching cutting-edge technologies.",
-        skills: ["Machine Learning", "Python", "TensorFlow", "Data Science"],
-        badges: ["Guru", "Research Lead"],
-        rating: 4.9,
-        reviewsCount: 127,
-        workshopsAttended: 45,
-        workshopsHosted: 23
+      name: "Dr. Rajesh Hamal",
+      email: "rajesh.hamal@tu.edu.np",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      bio: "Professor of Computer Science at Tribhuvan University. Expert in AI/ML and blockchain technology.",
+      skills: ["Machine Learning", "Python", "Blockchain", "Data Science"],
+      badges: ["Guru", "Verified Educator"],
+      reviewsReceived: 47,
+      workshopsHosted: 12,
+      workshopsAttended: 5,
+      application: {
+        title: "AI Research Assistant Position",
+        summary: "Seeking mentorship in machine learning research for final year project on NLP applications in Nepali language processing."
       },
-      proposalTitle: "Advanced ML Algorithms Workshop",
       status: "pending",
-      submittedDate: "2024-06-10",
-      contractHash: null
+      submittedOn: "2025-06-10"
     },
     {
       id: 2,
-      teacher: {
-        name: "Prof. Michael Rodriguez",
-        email: "m.rodriguez@tech.edu",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-        bio: "Full-stack developer and educator specializing in modern web technologies and cloud architecture.",
-        skills: ["React", "Node.js", "AWS", "DevOps"],
-        badges: ["Acharya", "Cloud Expert"],
-        rating: 4.7,
-        reviewsCount: 89,
-        workshopsAttended: 32,
-        workshopsHosted: 18
+      name: "Sita Sharma",
+      email: "sita.sharma@ktm.college.np",
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b9461e8b?w=150&h=150&fit=crop&crop=face",
+      bio: "Full-stack developer and workshop facilitator. Passionate about teaching modern web technologies.",
+      skills: ["React", "Node.js", "MongoDB", "UI/UX"],
+      badges: ["Shiksharthi", "Workshop Host"],
+      reviewsReceived: 32,
+      workshopsHosted: 8,
+      workshopsAttended: 15,
+      application: {
+        title: "React Workshop Participation",
+        summary: "Interested in joining your advanced React workshop to enhance my frontend development skills."
       },
-      proposalTitle: "React Advanced Patterns",
       status: "accepted",
-      submittedDate: "2024-06-08",
-      contractHash: "0x7a8b9c2d..."
-    },
-    {
-      id: 3,
-      teacher: {
-        name: "Dr. Emily Watson",
-        email: "e.watson@design.edu",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-        bio: "UX/UI Design specialist with expertise in user research, prototyping, and design systems.",
-        skills: ["UI/UX Design", "Figma", "User Research", "Prototyping"],
-        badges: ["Design Master"],
-        rating: 4.8,
-        reviewsCount: 156,
-        workshopsAttended: 28,
-        workshopsHosted: 31
-      },
-      proposalTitle: "Design System Workshop",
-      status: "declined",
-      submittedDate: "2024-06-05",
-      contractHash: null
-    },
-    {
-      id: 4,
-      teacher: {
-        name: "James Thompson",
-        email: "j.thompson@crypto.edu",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-        bio: "Blockchain developer and cryptocurrency enthusiast. Teaching smart contract development and DeFi protocols.",
-        skills: ["Blockchain", "Solidity", "Web3", "DeFi"],
-        badges: ["Blockchain Guru"],
-        rating: 4.6,
-        reviewsCount: 73,
-        workshopsAttended: 19,
-        workshopsHosted: 12
-      },
-      proposalTitle: "Smart Contract Development",
-      status: "pending",
-      submittedDate: "2024-06-12",
-      contractHash: null
+      submittedOn: "2025-06-08",
+      contractHash: "0x742d35Cc6634C0532925a3b8D4051F82"
     }
   ];
 
-  // Filter accepted proposals
-  const acceptedProposals = sentProposals.filter(proposal => proposal.status === 'accepted');
+  const acceptedByTeachers = [
+    {
+      id: 1,
+      name: "Sita Sharma",
+      email: "sita.sharma@ktm.college.np",
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b9461e8b?w=150&h=150&fit=crop&crop=face",
+      bio: "Full-stack developer and workshop facilitator. Passionate about teaching modern web technologies.",
+      skills: ["React", "Node.js", "MongoDB", "UI/UX"],
+      badges: ["Shiksharthi", "Workshop Host"],
+      reviewsReceived: 32,
+      workshopsHosted: 8,
+      contractHash: "0x742d35Cc6634C0532925a3b8D4051F82",
+      acceptedOn: "2025-06-09",
+      workshopTitle: "Advanced React Development",
+      startDate: "2025-06-20"
+    }
+  ];
 
-  // Get all unique skills for filter dropdown
-  const allSkills = [...new Set(sentProposals.flatMap(p => p.teacher.skills))];
+  const companyResponses = [
+    {
+      id: 1,
+      companyName: "Leapfrog Technology",
+      logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=80&h=80&fit=crop",
+      verified: true,
+      email: "careers@lftechnology.com",
+      website: "www.lftechnology.com",
+      description: "Leading software development company in Nepal, specializing in custom software solutions and digital transformation.",
+      jobTitle: "Junior Frontend Developer",
+      requiredSkills: ["React", "JavaScript", "CSS", "Git"],
+      startDate: "2025-07-01",
+      duration: "6 months",
+      workMode: "Hybrid",
+      rating: 4.8,
+      reviews: 156,
+      contractHash: "0x8f3e2a1c5b9d4e7f2a6c8b1e3d5f7a9c",
+      responseDate: "2025-06-11"
+    },
+    {
+      id: 2,
+      companyName: "Fusemachines",
+      logo: "https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=80&h=80&fit=crop",
+      verified: true,
+      email: "internships@fusemachines.com",
+      website: "www.fusemachines.com",
+      description: "AI-first company democratizing artificial intelligence through education, research, and product development.",
+      jobTitle: "ML Engineering Intern",
+      requiredSkills: ["Python", "TensorFlow", "Machine Learning", "Data Analysis"],
+      startDate: "2025-06-25",
+      duration: "4 months",
+      workMode: "Remote",
+      rating: 4.6,
+      reviews: 89,
+      contractHash: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d",
+      responseDate: "2025-06-10"
+    }
+  ];
 
-  // Filter and sort logic
-  const filteredProposals = useMemo(() => {
-    const proposals = activeTab === 'sent' ? sentProposals : acceptedProposals;
-    
-    let filtered = proposals.filter(proposal => {
-      const matchesSearch = proposal.teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           proposal.teacher.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesSkill = !selectedSkill || proposal.teacher.skills.includes(selectedSkill);
-      const matchesStatus = !selectedStatus || proposal.status === selectedStatus;
-      
-      return matchesSearch && matchesSkill && matchesStatus;
-    });
-
-    // Sort logic
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'recent':
-          return new Date(b.submittedDate) - new Date(a.submittedDate);
-        case 'rating':
-          return b.teacher.rating - a.teacher.rating;
-        case 'badge':
-          const badgePriority = { 'Guru': 3, 'Acharya': 2, 'Master': 1 };
-          const aBadge = Math.max(...a.teacher.badges.map(b => badgePriority[b] || 0));
-          const bBadge = Math.max(...b.teacher.badges.map(b => badgePriority[b] || 0));
-          return bBadge - aBadge;
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
-  }, [activeTab, searchTerm, selectedSkill, selectedStatus, sortBy, sentProposals, acceptedProposals]);
-
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      pending: { color: 'bg-yellow-100 text-yellow-800', icon: '🟡', text: 'Pending' },
-      accepted: { color: 'bg-green-100 text-green-800', icon: '🟢', text: 'Accepted' },
-      declined: { color: 'bg-red-100 text-red-800', icon: '🔴', text: 'Declined' }
-    };
-    
-    const config = statusConfig[status];
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
-        <span className="mr-1">{config.icon}</span>
-        {config.text}
-      </span>
-    );
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'accepted': return 'bg-green-100 text-green-800';
+      case 'declined': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
-  const ProposalCard = ({ proposal }) => (
-    <div className="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-all duration-300 border border-gray-100">
+  const handleAcceptOffer = (companyId) => {
+    alert(`Offer accepted from ${companyResponses.find(c => c.id === companyId)?.companyName}! Smart contract will be created.`);
+  };
+
+  const handleRejectOffer = (companyId) => {
+    const feedback = prompt("Optional: Provide feedback for rejecting this offer:");
+    alert(`Offer rejected. ${feedback ? `Feedback: ${feedback}` : ''}`);
+  };
+
+  const ProposalCard = ({ proposal, type = 'sent' }) => (
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
       <div className="flex items-start gap-4">
-        {/* Avatar */}
-        <img
-          src={proposal.teacher.avatar}
-          alt={proposal.teacher.name}
-          className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+        <img 
+          src={proposal.avatar} 
+          alt={proposal.name}
+          className="w-16 h-16 rounded-full object-cover"
         />
-        
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">{proposal.teacher.name}</h3>
-              <p className="text-sm text-gray-600">{proposal.teacher.email}</p>
+              <h3 className="text-lg font-semibold text-gray-900">{proposal.name}</h3>
+              <p className="text-sm text-gray-600">{proposal.email}</p>
             </div>
-            {getStatusBadge(proposal.status)}
-          </div>
-          
-          {/* Bio */}
-          <p className="text-sm text-gray-700 mb-3 line-clamp-2 leading-relaxed">
-            {proposal.teacher.bio}
-          </p>
-          
-          {/* Skills */}
-          <div className="flex flex-wrap gap-2 mb-3">
-            {proposal.teacher.skills.slice(0, 4).map((skill, index) => (
-              <span key={index} className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">
-                {skill}
-              </span>
-            ))}
-            {proposal.teacher.skills.length > 4 && (
-              <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium">
-                +{proposal.teacher.skills.length - 4} more
+            {type === 'sent' && (
+              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(proposal.status)}`}>
+                {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
               </span>
             )}
           </div>
           
-          {/* Badges */}
-          <div className="flex gap-2 mb-3">
-            {proposal.teacher.badges.map((badge, index) => (
-              <span key={index} className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-medium">
-                <Award className="w-3 h-3 mr-1" />
+          <p className="text-sm text-gray-700 mb-3 line-clamp-2">{proposal.bio}</p>
+          
+          <div className="flex flex-wrap gap-2 mb-3">
+            {proposal.skills.map((skill, index) => (
+              <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium">
+                {skill}
+              </span>
+            ))}
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mb-3">
+            {proposal.badges.map((badge, index) => (
+              <span key={index} className="inline-flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 rounded-lg text-xs font-medium">
+                <Award className="w-3 h-3" />
                 {badge}
               </span>
             ))}
           </div>
           
-          {/* Stats */}
-          <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
+          <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
             <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 text-yellow-500 fill-current" />
-              <span className="font-medium">{proposal.teacher.rating}</span>
-              <span>({proposal.teacher.reviewsCount})</span>
+              <Star className="w-4 h-4" />
+              <span>{proposal.reviewsReceived} reviews</span>
             </div>
-            <div className="flex items-center gap-1" title="Workshops Attended">
-              <BookOpen className="w-4 h-4 text-blue-500" />
-              <span>{proposal.teacher.workshopsAttended}</span>
-            </div>
-            <div className="flex items-center gap-1" title="Workshops Hosted">
-              <Users className="w-4 h-4 text-green-500" />
-              <span>{proposal.teacher.workshopsHosted}</span>
+            <div className="flex items-center gap-1">
+              <Book className="w-4 h-4" />
+              <span>{proposal.workshopsHosted || 0} hosted</span>
             </div>
           </div>
           
-          {/* Proposal Title */}
-          <div className="bg-gray-50 rounded-lg p-3 mb-4">
-            <h4 className="font-medium text-gray-900 mb-1">Proposal: {proposal.proposalTitle}</h4>
-            <p className="text-xs text-gray-500">Submitted on {new Date(proposal.submittedDate).toLocaleDateString()}</p>
-          </div>
+          {proposal.application && (
+            <div className="bg-gray-50 rounded-lg p-3 mb-4">
+              <h4 className="font-medium text-gray-900 mb-1">{proposal.application.title}</h4>
+              <p className="text-sm text-gray-600">{proposal.application.summary}</p>
+            </div>
+          )}
           
-          {/* Actions */}
+          {type === 'accepted' && proposal.contractHash && (
+            <div className="bg-green-50 rounded-lg p-3 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Hash className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-medium text-green-800">Smart Contract</span>
+              </div>
+              <p className="text-xs text-gray-600 font-mono">{proposal.contractHash}</p>
+              <p className="text-xs text-green-600 mt-1">Accepted on {proposal.acceptedOn}</p>
+            </div>
+          )}
+          
           <div className="flex gap-2">
-            {proposal.status === 'pending' && (
-              <button className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium">
-                <X className="w-4 h-4" />
+            {type === 'sent' && proposal.status === 'pending' && (
+              <button className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium">
                 Withdraw
               </button>
             )}
-            {proposal.status === 'accepted' && (
+            {type === 'sent' && proposal.status === 'accepted' && (
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                View Contract
+              </button>
+            )}
+            {type === 'accepted' && (
               <>
-                {proposal.contractHash && (
-                  <span className="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 text-xs rounded-full font-medium">
-                    🔗 On-chain Verified
-                  </span>
-                )}
-                <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                  <Calendar className="w-4 h-4" />
+                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                   Join Workshop
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
-                  <FileText className="w-4 h-4" />
-                  View Agreement
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
-                  <MessageCircle className="w-4 h-4" />
+                <button className="px-4 py-2 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium">
+                  <MessageCircle className="w-4 h-4 inline mr-1" />
                   Message
                 </button>
               </>
-            )}
-            {proposal.status === 'declined' && (
-              <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
-                <Eye className="w-4 h-4" />
-                View Details
-              </button>
             )}
           </div>
         </div>
@@ -257,129 +224,197 @@ const ProposalInvitationsPanel = () => {
     </div>
   );
 
-  return (
-    <div className="max-w-6xl mx-auto p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Proposal Invitations</h1>
-        <p className="text-gray-600">Manage your sent proposals and track accepted collaborations</p>
+  const CompanyCard = ({ company }) => (
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+      <div className="flex items-start gap-4">
+        <div className="relative">
+          <img 
+            src={company.logo} 
+            alt={company.companyName}
+            className="w-16 h-16 rounded-lg object-cover"
+          />
+          {company.verified && (
+            <div className="absolute -top-1 -right-1 bg-blue-600 rounded-full p-1">
+              <Check className="w-3 h-3 text-white" />
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">{company.companyName}</h3>
+              <p className="text-sm text-gray-600">{company.email}</p>
+              <a href={`https://${company.website}`} className="text-sm text-blue-600 hover:text-blue-800">
+                <ExternalLink className="w-3 h-3 inline mr-1" />
+                {company.website}
+              </a>
+            </div>
+            <div className="flex items-center gap-1 text-sm">
+              <Star className="w-4 h-4 text-yellow-500 fill-current" />
+              <span className="font-medium">{company.rating}</span>
+              <span className="text-gray-500">({company.reviews})</span>
+            </div>
+          </div>
+          
+          <p className="text-sm text-gray-700 mb-4">{company.description}</p>
+          
+          <div className="bg-blue-50 rounded-lg p-4 mb-4">
+            <h4 className="font-semibold text-blue-900 mb-2">{company.jobTitle}</h4>
+            <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+              <div className="flex items-center gap-1 text-gray-600">
+                <Calendar className="w-4 h-4" />
+                <span>Starts: {company.startDate}</span>
+              </div>
+              <div className="flex items-center gap-1 text-gray-600">
+                <MapPin className="w-4 h-4" />
+                <span>{company.workMode}</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {company.requiredSkills.map((skill, index) => (
+                <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+          
+          {company.contractHash && (
+            <div className="bg-green-50 rounded-lg p-3 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Hash className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-medium text-green-800">Smart Contract Ready</span>
+              </div>
+              <p className="text-xs text-gray-600 font-mono">{company.contractHash}</p>
+            </div>
+          )}
+          
+          <div className="flex gap-3">
+            <button 
+              onClick={() => handleAcceptOffer(company.id)}
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+            >
+              <Check className="w-4 h-4 inline mr-2" />
+              Accept Offer
+            </button>
+            <button 
+              onClick={() => handleRejectOffer(company.id)}
+              className="flex-1 px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors font-medium"
+            >
+              <X className="w-4 h-4 inline mr-2" />
+              Reject Offer
+            </button>
+          </div>
+        </div>
       </div>
+    </div>
+  );
 
-      {/* Tabs */}
-      <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
-        <div className="flex border-b border-gray-200 mb-6">
-          <button
-            onClick={() => setActiveTab('sent')}
-            className={`px-6 py-3 font-medium text-sm relative transition-colors ${
-              activeTab === 'sent'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            📨 Sent Proposals ({sentProposals.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('accepted')}
-            className={`px-6 py-3 font-medium text-sm relative transition-colors ${
-              activeTab === 'accepted'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            ✅ Accepted Proposals ({acceptedProposals.length})
-          </button>
+  const tabs = [
+    { id: 'sent', label: 'Sent Proposals', count: sentProposals.length },
+    { id: 'accepted', label: 'Accepted by Teachers', count: acceptedByTeachers.length },
+    { id: 'companies', label: 'Invitations Projects', count: companyResponses.length }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Proposal Manager</h1>
+          <p className="text-gray-600">Track and manage your workshop, mentor, and company proposals</p>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          {/* Search */}
-          <div className="relative flex-1 min-w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search by teacher name or email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+        {/* Search and Filters */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search by name, title, or company..."
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <select className="px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="">All Skills</option>
+                <option value="react">React</option>
+                <option value="python">Python</option>
+                <option value="ml">Machine Learning</option>
+              </select>
+              <select className="px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="">All Types</option>
+                <option value="workshop">Workshop</option>
+                <option value="mentorship">Mentorship</option>
+                <option value="job">Job</option>
+              </select>
+              <select className="px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="recent">Most Recent</option>
+                <option value="skill-match">Skill Match</option>
+                <option value="badge-level">Badge Level</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+          <div className="border-b border-gray-200">
+            <nav className="flex">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {tab.label}
+                  <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </nav>
           </div>
 
-          {/* Filter Toggle */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            <Filter className="w-4 h-4" />
-            Filters
-            <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-          </button>
-        </div>
-
-        {/* Expanded Filters */}
-        {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-            {/* Skill Filter */}
-            <select
-              value={selectedSkill}
-              onChange={(e) => setSelectedSkill(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Skills</option>
-              {allSkills.map(skill => (
-                <option key={skill} value={skill}>{skill}</option>
-              ))}
-            </select>
-
-            {/* Status Filter (Tab 1 only) */}
+          <div className="p-6">
+            {/* Sent Proposals Tab */}
             {activeTab === 'sent' && (
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="accepted">Accepted</option>
-                <option value="declined">Declined</option>
-              </select>
+              <div className="space-y-6">
+                {sentProposals.map((proposal) => (
+                  <ProposalCard key={proposal.id} proposal={proposal} type="sent" />
+                ))}
+              </div>
             )}
 
-            {/* Sort By */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="recent">Most Recent</option>
-              <option value="rating">Highest Rating</option>
-              <option value="badge">Badge Level</option>
-            </select>
-          </div>
-        )}
+            {/* Accepted by Teachers Tab */}
+            {activeTab === 'accepted' && (
+              <div className="space-y-6">
+                {acceptedByTeachers.map((proposal) => (
+                  <ProposalCard key={proposal.id} proposal={proposal} type="accepted" />
+                ))}
+              </div>
+            )}
 
-        {/* Results Summary */}
-        <div className="flex justify-between items-center mb-4">
-          <p className="text-sm text-gray-600">
-            Showing {filteredProposals.length} of {activeTab === 'sent' ? sentProposals.length : acceptedProposals.length} proposals
-          </p>
+            {/* Company Responses Tab */}
+            {activeTab === 'companies' && (
+              <div className="space-y-6">
+                {companyResponses.map((company) => (
+                  <CompanyCard key={company.id} company={company} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-
-      {/* Proposals Grid */}
-      <div className="space-y-4">
-        {filteredProposals.length > 0 ? (
-          filteredProposals.map(proposal => (
-            <ProposalCard key={proposal.id} proposal={proposal} />
-          ))
-        ) : (
-          <div className="bg-white rounded-2xl shadow-md p-12 text-center">
-            <div className="text-gray-400 mb-4">
-              <Search className="w-16 h-16 mx-auto" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No proposals found</h3>
-            <p className="text-gray-600">Try adjusting your search terms or filters</p>
-          </div>
-        )}
       </div>
     </div>
   );
