@@ -11,10 +11,10 @@ const AuthContextProvider = ({ children }) => {
   const [fetchMessage, setFetchMessage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const login = async (email, password) => {
+  const login = async (input) => {
     try {
       setLoading(true);
-      const response = await post("/api/users/login", { email, password });
+      const response = await post("/api/users/login", input);
       if (response.token && response.user) {
         // Store token in localStorage for client-side access
         localStorage.setItem("token", response.token);
