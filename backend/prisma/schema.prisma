@@ -82,11 +82,14 @@ enum BadgeTier {
 model Job {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   title           String
+  subtitle        String?  // Added for job subtitle
   description     String
   requiredSkills  String[]
   tags            String[]
-  type            String   // FULL_TIME, PART_TIME, INTERNSHIP
+  type            JobType  // Changed to enum
   location        String
+  locationType    String   // Added for remote/hybrid/onsite
+  budget          String?  // Added for job budget
   status          JobStatus @default(OPEN)
   isVerified      Boolean  @default(false)
   employerId      String   @db.ObjectId
@@ -96,11 +99,23 @@ model Job {
   reviews         Review[] @relation("JobReviews")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  postedTime      String?  // Added for frontend display
+  proposals       Int      @default(0) // Added for tracking number of proposals
+  aiMatch         Float?   // Added for AI matching score
 
   @@unique([title, employerId])
   @@index([employerId])
   @@index([status])
   @@index([type])
+  @@index([locationType])
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  FREELANCE
+  CONTRACT
 }
 
 enum JobStatus {
@@ -146,6 +161,10 @@ model Workshop {
   status       WorkshopStatus @default(UPCOMING)
   startDate    DateTime
   endDate      DateTime
+  totalSeats   Int
+  outcomes     String[]
+  rules        String[]
+  zoomStatus   String?        // Optional field for status message
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 

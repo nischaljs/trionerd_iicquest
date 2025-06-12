@@ -142,7 +142,17 @@ export const getJobById = async (req: Request, res: Response) => {
 // Create new job
 export const createJob = async (req: Request, res: Response) => {
   try {
-    const { title, description, requiredSkills, tags, type, location } = req.body;
+    const { 
+      title, 
+      subtitle,
+      description, 
+      requiredSkills, 
+      tags, 
+      type, 
+      location,
+      locationType,
+      budget 
+    } = req.body;
     const employerId = (req as any).user.id;
 
     // Input validation
@@ -164,17 +174,25 @@ export const createJob = async (req: Request, res: Response) => {
     if (!location) {
       return createError(res, 'Job location is required', 'MISSING_LOCATION');
     }
+    if (!locationType) {
+      return createError(res, 'Location type is required', 'MISSING_LOCATION_TYPE');
+    }
 
     const job = await prisma.job.create({
       data: {
         title,
+        subtitle,
         description,
         requiredSkills,
         tags,
         type,
         location,
+        locationType,
+        budget,
         status: 'OPEN',
-        employerId
+        employerId,
+        postedTime: 'Just now',
+        proposals: 0
       }
     });
 
@@ -192,7 +210,18 @@ export const createJob = async (req: Request, res: Response) => {
 export const updateJob = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, requiredSkills, tags, type, location, status } = req.body;
+    const { 
+      title, 
+      subtitle,
+      description, 
+      requiredSkills, 
+      tags, 
+      type, 
+      location,
+      locationType,
+      budget,
+      status 
+    } = req.body;
     const userId = (req as any).user.id;
 
     if (!isValidObjectId(id)) {
@@ -202,7 +231,7 @@ export const updateJob = async (req: Request, res: Response) => {
     // Check if user is the employer
     const job = await prisma.job.findUnique({
       where: { id },
-      select: { employerId: true, status:true }
+      select: { employerId: true, status: true }
     });
 
     if (!job) {
@@ -224,11 +253,14 @@ export const updateJob = async (req: Request, res: Response) => {
       where: { id },
       data: {
         title,
+        subtitle,
         description,
         requiredSkills,
         tags,
         type,
         location,
+        locationType,
+        budget,
         status
       }
     });

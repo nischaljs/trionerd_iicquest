@@ -1,4 +1,4 @@
-import { PrismaClient, BadgeTier, WorkshopStatus, ProjectDifficulty, ProjectStatus, JobStatus } from '@prisma/client';
+import { PrismaClient, BadgeTier, WorkshopStatus, ProjectDifficulty, ProjectStatus, JobStatus, JobType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -182,7 +182,19 @@ async function main() {
       skillsTaught: ['React', 'JavaScript'],
       status: WorkshopStatus.COMPLETED,
       startDate: new Date(Date.now() - 45 * 86400000),
-      endDate: new Date(Date.now() - 38 * 86400000)
+      endDate: new Date(Date.now() - 38 * 86400000),
+      totalSeats: 30,
+      outcomes: [
+        'Understand React fundamentals',
+        'Build your first React app',
+        'Learn component-based architecture'
+      ],
+      rules: [
+        'Bring your own laptop',
+        'Basic JavaScript knowledge required',
+        'Be on time'
+      ],
+      zoomStatus: 'Link will be active 30 minutes before event'
     },
     {
       title: 'Node.js Basics',
@@ -193,7 +205,19 @@ async function main() {
       skillsTaught: ['Node.js', 'Express', 'MongoDB'],
       status: WorkshopStatus.ONGOING,
       startDate: new Date(Date.now() - 2 * 86400000),
-      endDate: new Date(Date.now() + 5 * 86400000)
+      endDate: new Date(Date.now() + 5 * 86400000),
+      totalSeats: 25,
+      outcomes: [
+        'Understand Node.js basics',
+        'Build REST APIs with Express',
+        'Connect to MongoDB'
+      ],
+      rules: [
+        'Install Node.js before the workshop',
+        'Bring your own laptop',
+        'Participate actively'
+      ],
+      zoomStatus: 'Link will be active before event'
     }
   ];
 
@@ -219,23 +243,83 @@ async function main() {
   const jobData = [
     {
       title: 'Frontend Developer Intern',
-      description: 'Looking for a frontend developer intern...',
+      subtitle: 'Exciting opportunity for MERN learners!',
+      description: 'Looking for a frontend developer intern with passion for creating beautiful user interfaces...',
       requiredSkills: ['HTML', 'CSS', 'JavaScript', 'React'],
       tags: ['Internship', 'Frontend', 'React'],
       type: 'INTERNSHIP',
-      location: 'Hybrid',
+      location: 'Kathmandu',
+      locationType: 'Hybrid',
+      budget: 'NPR 25,000',
       status: JobStatus.OPEN,
-      isVerified: true
+      isVerified: true,
+      postedTime: '3 hours ago',
+      proposals: 12,
+      aiMatch: 0.92
     },
     {
       title: 'Senior Full Stack Developer',
-      description: 'Experienced full stack developer needed...',
+      subtitle: 'Join our growing tech team!',
+      description: 'Experienced full stack developer needed for building scalable applications...',
       requiredSkills: ['React', 'Node.js', 'MongoDB', 'TypeScript'],
       tags: ['Full-time', 'Full Stack', 'Senior'],
       type: 'FULL_TIME',
       location: 'Remote',
+      locationType: 'Remote',
+      budget: 'NPR 150,000',
       status: JobStatus.OPEN,
-      isVerified: true
+      isVerified: true,
+      postedTime: '1 day ago',
+      proposals: 8,
+      aiMatch: 0.88
+    },
+    {
+      title: 'UI/UX Designer',
+      subtitle: 'Create beautiful digital experiences',
+      description: 'Looking for a creative UI/UX designer to join our design team...',
+      requiredSkills: ['Figma', 'UI Design', 'UX Research', 'Prototyping'],
+      tags: ['Design', 'UI/UX', 'Creative'],
+      type: 'FREELANCE',
+      location: 'Remote',
+      locationType: 'Remote',
+      budget: 'Negotiable',
+      status: JobStatus.OPEN,
+      isVerified: true,
+      postedTime: '5 hours ago',
+      proposals: 15,
+      aiMatch: 0.85
+    },
+    {
+      title: 'Backend Developer',
+      subtitle: 'Build scalable backend systems',
+      description: 'Looking for a backend developer to work on our microservices architecture...',
+      requiredSkills: ['Node.js', 'Python', 'Docker', 'AWS'],
+      tags: ['Backend', 'Full-time', 'Senior'],
+      type: 'FULL_TIME',
+      location: 'Kathmandu',
+      locationType: 'Onsite',
+      budget: 'NPR 120,000',
+      status: JobStatus.OPEN,
+      isVerified: true,
+      postedTime: '2 days ago',
+      proposals: 6,
+      aiMatch: 0.90
+    },
+    {
+      title: 'DevOps Engineer',
+      subtitle: 'Join our infrastructure team',
+      description: 'Help us build and maintain our cloud infrastructure...',
+      requiredSkills: ['Docker', 'Kubernetes', 'AWS', 'CI/CD'],
+      tags: ['DevOps', 'Infrastructure', 'Cloud'],
+      type: 'CONTRACT',
+      location: 'Remote',
+      locationType: 'Remote',
+      budget: 'NPR 180,000',
+      status: JobStatus.OPEN,
+      isVerified: true,
+      postedTime: '1 week ago',
+      proposals: 10,
+      aiMatch: 0.87
     }
   ];
 
@@ -243,8 +327,21 @@ async function main() {
     jobData.map((job) =>
       prisma.job.create({
         data: {
-          ...job,
-          employerId: employers[0].id
+          title: job.title,
+          subtitle: job.subtitle,
+          description: job.description,
+          requiredSkills: job.requiredSkills,
+          tags: job.tags,
+          type: job.type as unknown as JobType,
+          location: job.location,
+          locationType: job.locationType,
+          budget: job.budget,
+          status: job.status,
+          isVerified: job.isVerified,
+          employerId: employers[0].id,
+          postedTime: job.postedTime,
+          proposals: job.proposals,
+          aiMatch: job.aiMatch
         }
       })
     )
