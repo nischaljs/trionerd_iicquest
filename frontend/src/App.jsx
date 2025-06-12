@@ -11,8 +11,9 @@ import OpenSourceProjectsFeed from "./components/dashboard/forum/OpenSourceProje
 import FreelanceProjectFeed from "./components/dashboard/freelance/FreelanceProjectFeed";
 import ChalkBoxEmployerDashboard from "./components/edasboard/ChalkBoxEmployerDashboard";
 import EDashboard from "./components/edasboard/EDashboard";
-import JobPostingForm from "./components/edasboard/JobPostingForm";
+import JobPostingForm from "./components/edasboard/FreelanceProjectForm ";
 import Collaboration from "./components/edasboard/Collaboration";
+import FreelanceProjectForm from "./components/edasboard/FreelanceProjectForm ";
 
 
 const App = () => {
@@ -37,9 +38,14 @@ const App = () => {
           path: "/employer-dashboard/post-open-source-project",
           element: <Collaboration />
         },
+        {
+          path: "/employer-dashboard/post-freelance-project",
+          element: <FreelanceProjectForm />,
+        }
       ],
 
     },
+
 
     {
       path: "/dashboard",
