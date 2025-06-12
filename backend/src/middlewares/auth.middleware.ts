@@ -6,13 +6,19 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET!;
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  // Check for token in cookies first
+  const tokenFromCookie = req.cookies?.token;
+  
+  // Then check authorization header
   const authHeader = req.headers.authorization;
+  const tokenFromHeader = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  // Use token from cookie if available, otherwise use token from header
+  const token = tokenFromCookie || tokenFromHeader;
+
+  if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
-  const token = authHeader.split(' ')[1];
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string; role: string };

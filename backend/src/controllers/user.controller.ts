@@ -20,6 +20,16 @@ export const registerUser = async (req: Request, res: Response) => {
     },
   });
 
+  // Generate token
+  const token = generateToken({ id: user.id, role: user.role });
+
+  // Set token in cookie
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+    sameSite: 'strict',
+    maxAge: 48 * 60 * 60 * 1000 // 24 hours
+  });
 
   res.status(201).json({ user });
 };
@@ -34,6 +44,15 @@ export const loginUser = async (req: Request, res: Response) => {
   if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
   const token = generateToken({ id: user.id, role: user.role });
+
+  // Set token in cookie
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+    sameSite: 'strict',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  });
+
   res.status(200).json({ token, user });
 };
 
