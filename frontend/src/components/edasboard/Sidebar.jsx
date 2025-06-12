@@ -64,11 +64,11 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
       hasDropdown: true,
       subItems: [
         {
-          id: "employer-dashboard/post-open-source-project",
+          id: "post-open-source-project",
           label: "Create open source project",
         },
         {
-          id: "employer-dashboard/opensource-contributer",
+          id: "opensource-contributer",
           label: "Contributer",
         },
       ],
@@ -210,7 +210,7 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
                       return (
                         <Link
                           key={subItem.id}
-                          to={`/employer/${subItem.id}`}
+                          to={`/employer-dashboard/${subItem.id}`}
                           className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 ${
                             isSubActive
                               ? "font-medium text-white"
