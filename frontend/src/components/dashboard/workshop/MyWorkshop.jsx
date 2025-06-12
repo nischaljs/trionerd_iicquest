@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   Plus,
   Star,
@@ -18,12 +17,11 @@ import {
   Link,
   Loader2,
 } from 'lucide-react';
+import axios from 'axios';
 
 const MyWorkshop = () => {
   const [activeTab, setActiveTab] = useState('hosted');
   const [showHostModal, setShowHostModal] = useState(false);
-  const [hostedWorkshops, setHostedWorkshops] = useState([]);
-  const [joinedWorkshops, setJoinedWorkshops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
@@ -38,58 +36,106 @@ const MyWorkshop = () => {
     zoomPassword: '',
     isRecorded: true,
   });
+  const [suggestedWorkshops, setSuggestedWorkshops] = useState([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [suggestionsError, setSuggestionsError] = useState(null);
+  const [hostedWorkshops, setHostedWorkshops] = useState([]);
+  const [joinedWorkshops, setJoinedWorkshops] = useState([]);
+  const [hostedLoading, setHostedLoading] = useState(false);
+  const [joinedLoading, setJoinedLoading] = useState(false);
+  const [hostedError, setHostedError] = useState(null);
+  const [joinedError, setJoinedError] = useState(null);
 
-  const totalTokens = 1247;
+  const totalTokens = hostedWorkshops.reduce(
+    (total, workshop) => total + (workshop.tokensEarned || 0),
+    0
+  );
 
-  // API Functions
-  const fetchWorkshops = async (status = 'UPCOMING') => {
+  // Fetch suggestions from API
+  const fetchSuggestions = async (limit = 1) => {
     try {
+      console.log('🎯 Fetching workshop suggestions...');
+      setSuggestionsLoading(true);
+      setSuggestionsError(null);
+
       const response = await axios.get(
-        `http://localhost:3000/api/workshops?page=1&limit=10&status=${status}`
+        `http://localhost:3000/api/workshops/suggestions?limit=${limit}`,
+        {
+          withCredentials: true,
+        }
       );
-      return response.data;
+
+      console.log('✅ Suggestions fetched:', response.data);
+
+      if (response.data.status === 'success') {
+        setSuggestedWorkshops(response.data.data || []);
+      } else {
+        throw new Error('Failed to fetch suggestions');
+      }
     } catch (error) {
-      console.error('Error fetching workshops:', error);
-      throw error;
+      console.error(
+        '❌ Error fetching suggestions:',
+        error?.response?.data || error.message
+      );
+      setSuggestionsError('Failed to load suggestions');
+    } finally {
+      setSuggestionsLoading(false);
     }
   };
 
-  // Load workshops data
-  useEffect(() => {
-    const loadWorkshops = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  // Fetch hosted workshops from API
+  const fetchHostedWorkshops = async () => {
+    try {
+      console.log('📚 Fetching hosted workshops...');
+      setHostedLoading(true);
+      setHostedError(null);
 
-        // Fetch different statuses
-        const [upcomingData, ongoingData, completedData] = await Promise.all([
-          fetchWorkshops('UPCOMING'),
-          fetchWorkshops('ONGOING'),
-          fetchWorkshops('COMPLETED'),
-        ]);
+      const response = await axios.get(
+        'http://localhost:3000/api/workshops/my-organized',
+        {
+          withCredentials: true,
+        }
+      );
 
-        // Combine all workshops for hosted (assuming current user is the host)
-        const allHostedWorkshops = [
-          ...(upcomingData || []),
-          ...(ongoingData || []),
-          ...(completedData || []),
-        ];
+      console.log('✅ Hosted workshops fetched:', response.data);
+      setHostedWorkshops(response.data || []);
+    } catch (error) {
+      console.error(
+        '❌ Error fetching hosted workshops:',
+        error?.response?.data || error.message
+      );
+      setHostedError('Failed to load hosted workshops');
+    } finally {
+      setHostedLoading(false);
+    }
+  };
 
-        setHostedWorkshops(allHostedWorkshops);
+  // Fetch joined workshops from API
+  const fetchJoinedWorkshops = async () => {
+    try {
+      console.log('🔍 Fetching joined workshops...');
+      setJoinedLoading(true);
+      setJoinedError(null);
 
-        // For joined workshops, we'll use the same data but filter differently
-        // In a real app, you'd have a separate endpoint for joined workshops
-        setJoinedWorkshops(allHostedWorkshops.slice(0, 3)); // Mock joined workshops
-      } catch (err) {
-        setError('Failed to load workshops');
-        console.error('Error loading workshops:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      const response = await axios.get(
+        'http://localhost:3000/api/workshops/my-joined',
+        {
+          withCredentials: true,
+        }
+      );
 
-    loadWorkshops();
-  }, []);
+      console.log('✅ Joined workshops fetched:', response.data);
+      setJoinedWorkshops(response.data || []);
+    } catch (error) {
+      console.error(
+        '❌ Error fetching joined workshops:',
+        error?.response?.data || error.message
+      );
+      setJoinedError('Failed to load joined workshops');
+    } finally {
+      setJoinedLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -99,35 +145,23 @@ const MyWorkshop = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      // Here you would make an API call to create the workshop
-      console.log('Workshop data:', formData);
-
-      // Mock API call
-      // await axios.post('http://localhost:3000/api/workshops', formData)
-
-      setShowHostModal(false);
-      // Reset form
-      setFormData({
-        title: '',
-        description: '',
-        date: '',
-        time: '',
-        duration: '60',
-        skills: '',
-        maxAttendees: '50',
-        zoomMeetingId: '',
-        zoomPassword: '',
-        isRecorded: true,
-      });
-
-      // Refresh workshops list
-      // You could call loadWorkshops() here
-    } catch (error) {
-      console.error('Error creating workshop:', error);
-    }
+    console.log('Workshop data:', formData);
+    setShowHostModal(false);
+    // Reset form
+    setFormData({
+      title: '',
+      description: '',
+      date: '',
+      time: '',
+      duration: '60',
+      skills: '',
+      maxAttendees: '50',
+      zoomMeetingId: '',
+      zoomPassword: '',
+      isRecorded: true,
+    });
   };
 
   const formatDate = (dateString) => {
@@ -206,15 +240,48 @@ const MyWorkshop = () => {
     return (sum / reviews.length).toFixed(1);
   };
 
-  const suggestedWorkshop = {
-    title: 'Advanced React Patterns',
-    host: 'Sarah Johnson',
-    date: '2025-06-20',
-    skills: ['React', 'Advanced Patterns', 'Performance'],
-    participants: 45,
-  };
+  // Load all data on component mount
+  useEffect(() => {
+    const loadAllData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  if (loading) {
+        // Fetch all data in parallel
+        await Promise.all([
+          fetchHostedWorkshops(),
+          fetchJoinedWorkshops(),
+          fetchSuggestions(1),
+        ]);
+      } catch (err) {
+        setError('Failed to load data');
+        console.error('Error loading data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAllData();
+  }, []);
+
+  // Handle tab changes - refresh data when switching tabs
+  useEffect(() => {
+    if (
+      activeTab === 'hosted' &&
+      !hostedLoading &&
+      hostedWorkshops.length === 0
+    ) {
+      fetchHostedWorkshops();
+    } else if (
+      activeTab === 'joined' &&
+      !joinedLoading &&
+      joinedWorkshops.length === 0
+    ) {
+      fetchJoinedWorkshops();
+    }
+  }, [activeTab]);
+
+  if (loading && hostedWorkshops.length === 0 && joinedWorkshops.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="flex items-center gap-3 text-blue-600">
@@ -225,11 +292,13 @@ const MyWorkshop = () => {
     );
   }
 
-  if (error) {
+  if (error && hostedWorkshops.length === 0 && joinedWorkshops.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-600 text-lg font-semibold mb-2">{error}</div>
+          <div className="text-red-600 text-lg font-semibold mb-2">
+            Error: {error}
+          </div>
           <button
             onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors"
@@ -311,11 +380,28 @@ const MyWorkshop = () => {
           <div className="lg:col-span-3">
             {activeTab === 'hosted' && (
               <div className="space-y-4">
-                {hostedWorkshops.length === 0 ? (
+                {hostedLoading ? (
+                  <div className="bg-white rounded-2xl p-8 flex justify-center items-center">
+                    <Loader2 className="w-6 h-6 text-blue-600 animate-spin mr-2" />
+                    <span className="text-gray-600">
+                      Loading hosted workshops...
+                    </span>
+                  </div>
+                ) : hostedError ? (
+                  <div className="bg-white rounded-2xl p-8 text-center">
+                    <div className="text-red-500 mb-3">{hostedError}</div>
+                    <button
+                      onClick={fetchHostedWorkshops}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : hostedWorkshops.length === 0 ? (
                   <div className="bg-white rounded-2xl p-8 text-center shadow-md">
                     <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      No workshops yet
+                      No workshops hosted yet
                     </h3>
                     <p className="text-gray-600 mb-4">
                       Start sharing your knowledge by hosting your first
@@ -426,7 +512,24 @@ const MyWorkshop = () => {
 
             {activeTab === 'joined' && (
               <div className="space-y-4">
-                {joinedWorkshops.length === 0 ? (
+                {joinedLoading ? (
+                  <div className="bg-white rounded-2xl p-8 flex justify-center items-center">
+                    <Loader2 className="w-6 h-6 text-blue-600 animate-spin mr-2" />
+                    <span className="text-gray-600">
+                      Loading joined workshops...
+                    </span>
+                  </div>
+                ) : joinedError ? (
+                  <div className="bg-white rounded-2xl p-8 text-center">
+                    <div className="text-red-500 mb-3">{joinedError}</div>
+                    <button
+                      onClick={fetchJoinedWorkshops}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : joinedWorkshops.length === 0 ? (
                   <div className="bg-white rounded-2xl p-8 text-center shadow-md">
                     <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -504,6 +607,22 @@ const MyWorkshop = () => {
                             )}
                           </div>
                         </div>
+
+                        <div className="flex flex-col gap-2">
+                          {workshop.zoomLink &&
+                            (workshop.status === 'UPCOMING' ||
+                              workshop.status === 'ONGOING') && (
+                              <a
+                                href={workshop.zoomLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors"
+                              >
+                                <Video className="w-4 h-4" />
+                                Join Zoom
+                              </a>
+                            )}
+                        </div>
                       </div>
                     </div>
                   ))
@@ -513,43 +632,146 @@ const MyWorkshop = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1">
-            {/* Suggested Workshop */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Suggested Workshops */}
             <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl p-6 shadow-lg mb-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5" />
-                <h3 className="font-bold text-lg">Suggested for You</h3>
-              </div>
-
-              <h4 className="font-semibold text-lg mb-2">
-                {suggestedWorkshop.title}
-              </h4>
-              <p className="text-purple-100 text-sm mb-2">
-                by {suggestedWorkshop.host}
-              </p>
-              <p className="text-purple-100 text-sm mb-4">
-                {suggestedWorkshop.date}
-              </p>
-
-              <div className="flex flex-wrap gap-1 mb-4">
-                {suggestedWorkshop.skills.map((skill, index) => (
-                  <span
-                    key={index}
-                    className="bg-white/20 text-white px-2 py-1 rounded-full text-xs"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-purple-100">
-                  {suggestedWorkshop.participants} interested
-                </span>
-                <button className="bg-white text-purple-600 px-4 py-2 rounded-xl font-semibold text-sm hover:bg-purple-50 transition-colors">
-                  Join Now
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  <h3 className="font-bold text-lg">Suggested for You</h3>
+                </div>
+                <button
+                  onClick={() => fetchSuggestions(1)}
+                  className="bg-white/20 hover:bg-white/30 p-1.5 rounded-lg transition-colors"
+                  disabled={suggestionsLoading}
+                >
+                  {suggestionsLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
                 </button>
               </div>
+
+              {suggestionsLoading && suggestedWorkshops.length === 0 ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <span className="ml-2 text-purple-100">
+                    Loading suggestions...
+                  </span>
+                </div>
+              ) : suggestionsError ? (
+                <div className="text-center py-4">
+                  <p className="text-purple-100 text-sm mb-2">
+                    {suggestionsError}
+                  </p>
+                  <button
+                    onClick={() => fetchSuggestions(1)}
+                    className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-sm transition-colors"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : suggestedWorkshops.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-purple-100 text-sm">
+                    No suggestions available at the moment
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {suggestedWorkshops.map((workshop, index) => (
+                    <div
+                      key={workshop.id}
+                      className={`${
+                        index > 0 ? 'border-t border-white/20 pt-4' : ''
+                      }`}
+                    >
+                      <h4 className="font-semibold text-lg mb-2">
+                        {workshop.title}
+                      </h4>
+
+                      <div className="flex items-center gap-2 mb-2">
+                        {workshop.host?.profilePic && (
+                          <div className="w-6 h-6 rounded-full overflow-hidden bg-white/20">
+                            <img
+                              src={
+                                workshop.host.profilePic || '/placeholder.svg'
+                              }
+                              alt={workshop.host.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <p className="text-purple-100 text-sm">
+                          by {workshop.host?.name}
+                        </p>
+                        {workshop.host?.badges &&
+                          workshop.host.badges.length > 0 && (
+                            <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs">
+                              {workshop.host.badges[0].badge.name}
+                            </span>
+                          )}
+                      </div>
+
+                      <p className="text-purple-100 text-sm mb-3">
+                        {formatDate(workshop.startDate)}
+                      </p>
+
+                      {/* Match Percentage */}
+                      {workshop.similarity && (
+                        <div className="bg-white/20 rounded-lg p-3 mb-3">
+                          <div className="flex items-center justify-between text-sm mb-1">
+                            <span>Match</span>
+                            <span className="font-semibold">
+                              {workshop.similarity.matchPercentage}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-white/20 rounded-full h-2">
+                            <div
+                              className="bg-white h-2 rounded-full transition-all duration-300"
+                              style={{
+                                width: `${workshop.similarity.matchPercentage}%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {workshop.skillsTaught
+                          ?.slice(0, 3)
+                          .map((skill, skillIndex) => (
+                            <span
+                              key={skillIndex}
+                              className="bg-white/20 text-white px-2 py-1 rounded-full text-xs"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        {workshop.skillsTaught?.length > 3 && (
+                          <span className="bg-white/10 text-purple-100 px-2 py-1 rounded-full text-xs">
+                            +{workshop.skillsTaught.length - 3} more
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <div className="font-semibold">${workshop.price}</div>
+                          <div className="text-purple-100 text-xs">
+                            {workshop.attendees?.length || 0}/
+                            {workshop.totalSeats} seats
+                          </div>
+                        </div>
+                        <button className="bg-white text-purple-600 px-4 py-2 rounded-xl font-semibold text-sm hover:bg-purple-50 transition-colors">
+                          Join Now
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Quick Stats */}
@@ -576,7 +798,20 @@ const MyWorkshop = () => {
                   <span className="text-gray-600">Avg. Rating</span>
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-bold">4.8</span>
+                    <span className="font-bold">
+                      {hostedWorkshops.length > 0
+                        ? (
+                            hostedWorkshops.reduce(
+                              (acc, w) =>
+                                acc +
+                                Number.parseFloat(
+                                  calculateAverageRating(w.reviews) || 0
+                                ),
+                              0
+                            ) / hostedWorkshops.length
+                          ).toFixed(1)
+                        : '0.0'}
+                    </span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">

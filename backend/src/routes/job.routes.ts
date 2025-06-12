@@ -14,7 +14,8 @@ import {
   getStudentInvites,
   acceptJobInvite,
   rejectJobInvite,
-  getSuggestedFreelancers
+  getSuggestedFreelancers,
+  markJobAsCompleted
 } from '../controllers/job.controller';
 
 const router = Router();
@@ -44,5 +45,8 @@ router.post('/:jobId/invite/:studentId', inviteStudentToJob);
 router.get('/invites', getStudentInvites);
 router.post('/invites/:inviteId/accept', acceptJobInvite);
 router.post('/invites/:inviteId/reject', rejectJobInvite);
+
+// Job completion route (both employer and student can access)
+router.post('/:id/complete', markJobAsCompleted);
 
 export default router; 
