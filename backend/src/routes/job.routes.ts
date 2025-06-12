@@ -9,7 +9,12 @@ import {
   getJobApplications,
   getJobContracts,
   getJobSuggestions,
-  applyForJob
+  applyForJob,
+  inviteStudentToJob,
+  getStudentInvites,
+  acceptJobInvite,
+  rejectJobInvite,
+  getSuggestedFreelancers
 } from '../controllers/job.controller';
 
 const router = Router();
@@ -17,13 +22,11 @@ const router = Router();
 // Public routes
 router.get('/', getAllJobs);
 // Job suggestions (protected)
-router.get('/suggestions',authMiddleware, getJobSuggestions);
+router.get('/suggestions', authMiddleware, getJobSuggestions);
 router.get('/:id', getJobById);
 
 // Protected routes
 router.use(authMiddleware);
-
-
 
 // Employer only routes
 router.post('/', employerOnly, createJob);
@@ -31,8 +34,15 @@ router.put('/:id', employerOnly, updateJob);
 router.delete('/:id', employerOnly, deleteJob);
 router.get('/:id/applications', employerOnly, getJobApplications);
 router.get('/:id/contracts', employerOnly, getJobContracts);
+router.get('/:id/suggested-freelancers', employerOnly, getSuggestedFreelancers);
 
 // Student routes
 router.post('/:id/apply', applyForJob);
+
+// Job invite routes
+router.post('/:jobId/invite/:studentId', inviteStudentToJob);
+router.get('/invites', getStudentInvites);
+router.post('/invites/:inviteId/accept', acceptJobInvite);
+router.post('/invites/:inviteId/reject', rejectJobInvite);
 
 export default router; 

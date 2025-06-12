@@ -1,30 +1,25 @@
 import { Router } from 'express';
+import { getAllReviews, getReviewById, createReview, updateReview, deleteReview } from '../controllers/review.controller';
+import { authMiddleware } from '../middlewares/auth.middleware';
 
 const router = Router();
 
+// All review routes require authentication
+router.use(authMiddleware);
+
 // Get all reviews
-router.get('/', async (req, res) => {
-  // TODO: Implement controller
-});
+router.get('/', getAllReviews);
 
 // Get review by ID
-router.get('/:id', async (req, res) => {
-  // TODO: Implement controller
-});
+router.get('/:id', getReviewById);
 
 // Create new review
-router.post('/', async (req, res) => {
-  // TODO: Implement controller
-});
+router.post('/', createReview);
 
 // Update review
-router.put('/:id', async (req, res) => {
-  // TODO: Implement controller
-});
+router.put('/:id', updateReview);
 
 // Delete review
-router.delete('/:id', async (req, res) => {
-  // TODO: Implement controller
-});
+router.delete('/:id', deleteReview);
 
 export default router; 

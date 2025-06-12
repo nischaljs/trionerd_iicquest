@@ -631,4 +631,354 @@ export const applyForJob = async (req: Request, res: Response) => {
   } catch (error) {
     createError(res, 'Failed to submit application', 'APPLICATION_ERROR', 500);
   }
+};
+
+// Invite student to job
+export const inviteStudentToJob = async (req: Request, res: Response) => {
+  try {
+    const { jobId, studentId } = req.params;
+    const employerId = (req as any).user.id;
+
+    if (!isValidObjectId(jobId) || !isValidObjectId(studentId)) {
+      return createError(res, 'Invalid ID format', 'INVALID_ID');
+    }
+
+    // Check if job exists and belongs to employer
+    const job = await prisma.job.findUnique({
+      where: { id: jobId },
+      select: { employerId: true, status: true }
+    });
+
+    if (!job) {
+      return createError(res, 'Job not found', 'JOB_NOT_FOUND', 404);
+    }
+
+    if (job.employerId !== employerId) {
+      return createError(res, 'Not authorized to invite for this job', 'UNAUTHORIZED', 403);
+    }
+
+    if (job.status !== 'OPEN') {
+      return createError(res, 'Cannot invite for closed job', 'JOB_CLOSED');
+    }
+
+    // Check if student exists
+    const student = await prisma.user.findUnique({
+      where: { id: studentId, role: 'STUDENT' }
+    });
+
+    if (!student) {
+      return createError(res, 'Student not found', 'STUDENT_NOT_FOUND', 404);
+    }
+
+    // Check if invite already exists
+    const existingInvite = await prisma.jobInvite.findUnique({
+      where: {
+        jobId_studentId: {
+          jobId,
+          studentId
+        }
+      }
+    });
+
+    if (existingInvite) {
+      return createError(res, 'Student already invited', 'DUPLICATE_INVITE');
+    }
+
+    // Create invite
+    const invite = await prisma.jobInvite.create({
+      data: {
+        jobId,
+        studentId,
+        employerId,
+        status: 'PENDING'
+      },
+      include: {
+        job: true,
+        student: {
+          select: {
+            id: true,
+            name: true,
+            profilePic: true,
+            skills: true
+          }
+        }
+      }
+    });
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Invite sent successfully',
+      data: invite
+    });
+  } catch (error) {
+    createError(res, 'Failed to send invite', 'INVITE_ERROR', 500);
+  }
+};
+
+// Get job invites for student
+export const getStudentInvites = async (req: Request, res: Response) => {
+  try {
+    const studentId = (req as any).user.id;
+
+    const invites = await prisma.jobInvite.findMany({
+      where: {
+        studentId,
+        status: 'PENDING'
+      },
+      include: {
+        job: {
+          include: {
+            employer: {
+              select: {
+                id: true,
+                name: true,
+                profilePic: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    res.json({
+      status: 'success',
+      data: invites
+    });
+  } catch (error) {
+    createError(res, 'Failed to fetch invites', 'FETCH_INVITES_ERROR', 500);
+  }
+};
+
+// Accept job invite
+export const acceptJobInvite = async (req: Request, res: Response) => {
+  try {
+    const { inviteId } = req.params;
+    const studentId = (req as any).user.id;
+
+    if (!isValidObjectId(inviteId)) {
+      return createError(res, 'Invalid invite ID', 'INVALID_INVITE_ID');
+    }
+
+    const invite = await prisma.jobInvite.findUnique({
+      where: { id: inviteId },
+      include: { job: true }
+    });
+
+    if (!invite) {
+      return createError(res, 'Invite not found', 'INVITE_NOT_FOUND', 404);
+    }
+
+    if (invite.studentId !== studentId) {
+      return createError(res, 'Not authorized to accept this invite', 'UNAUTHORIZED', 403);
+    }
+
+    if (invite.status !== 'PENDING') {
+      return createError(res, 'Invite is no longer pending', 'INVITE_EXPIRED');
+    }
+
+    // Update invite status
+    await prisma.jobInvite.update({
+      where: { id: inviteId },
+      data: { status: 'ACCEPTED' }
+    });
+
+    // Create contract
+    const contract = await prisma.contract.create({
+      data: {
+        studentId,
+        employerId: invite.job.employerId,
+        jobId: invite.job.id,
+        agreementHash: 'pending', // Will be updated when stored on blockchain
+        status: 'PENDING'
+      },
+      include: {
+        student: true,
+        employer: true,
+        job: true
+      }
+    });
+
+    res.json({
+      status: 'success',
+      message: 'Invite accepted and contract created',
+      data: contract
+    });
+  } catch (error) {
+    createError(res, 'Failed to accept invite', 'ACCEPT_INVITE_ERROR', 500);
+  }
+};
+
+// Reject job invite
+export const rejectJobInvite = async (req: Request, res: Response) => {
+  try {
+    const { inviteId } = req.params;
+    const studentId = (req as any).user.id;
+
+    if (!isValidObjectId(inviteId)) {
+      return createError(res, 'Invalid invite ID', 'INVALID_INVITE_ID');
+    }
+
+    const invite = await prisma.jobInvite.findUnique({
+      where: { id: inviteId }
+    });
+
+    if (!invite) {
+      return createError(res, 'Invite not found', 'INVITE_NOT_FOUND', 404);
+    }
+
+    if (invite.studentId !== studentId) {
+      return createError(res, 'Not authorized to reject this invite', 'UNAUTHORIZED', 403);
+    }
+
+    if (invite.status !== 'PENDING') {
+      return createError(res, 'Invite is no longer pending', 'INVITE_EXPIRED');
+    }
+
+    await prisma.jobInvite.update({
+      where: { id: inviteId },
+      data: { status: 'REJECTED' }
+    });
+
+    res.json({
+      status: 'success',
+      message: 'Invite rejected successfully'
+    });
+  } catch (error) {
+    createError(res, 'Failed to reject invite', 'REJECT_INVITE_ERROR', 500);
+  }
+};
+
+// Get suggested freelancers for a job
+export const getSuggestedFreelancers = async (req: Request, res: Response) => {
+  try {
+    const { jobId } = req.params;
+    const employerId = (req as any).user.id;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const minSimilarity = 0.01; // Lower threshold to 1% to ensure some recommendations
+
+    if (!isValidObjectId(jobId)) {
+      return createError(res, 'Invalid job ID format', 'INVALID_JOB_ID');
+    }
+
+    // Check if job exists and belongs to employer
+    const job = await prisma.job.findUnique({
+      where: { id: jobId },
+      select: { 
+        id: true,
+        employerId: true,
+        requiredSkills: true,
+        status: true
+      }
+    });
+
+    if (!job) {
+      return createError(res, 'Job not found', 'JOB_NOT_FOUND', 404);
+    }
+
+    if (job.employerId !== employerId) {
+      return createError(res, 'Not authorized to view suggestions for this job', 'UNAUTHORIZED', 403);
+    }
+
+    if (job.status !== 'OPEN') {
+      return createError(res, 'Cannot get suggestions for closed job', 'JOB_CLOSED');
+    }
+
+    // Get all students with matching skills
+    const students = await prisma.user.findMany({
+      where: {
+        role: 'STUDENT',
+        skills: {
+          hasSome: job.requiredSkills
+        },
+        NOT: {
+          OR: [
+            {
+              applications: {
+                some: {
+                  jobId,
+                  status: 'ACCEPTED'
+                }
+              }
+            },
+            {
+              userContracts: {
+                some: {
+                  jobId,
+                  status: 'ACTIVE'
+                }
+              }
+            }
+          ]
+        }
+      },
+      include: {
+        badges: {
+          include: {
+            badge: true
+          }
+        },
+        applications: {
+          select: {
+            jobId: true,
+            status: true
+          }
+        },
+        userContracts: {
+          select: {
+            jobId: true,
+            status: true
+          }
+        }
+      }
+    });
+
+    // Calculate similarity scores for each student
+    const studentsWithScores = students.map(student => {
+      const hasAppliedBefore = student.applications.some(app => app.jobId === jobId);
+      const similarity = calculateSimilarityScore(
+        student.skills,
+        job.requiredSkills,
+        student.badges,
+        hasAppliedBefore
+      );
+
+      return {
+        id: student.id,
+        name: student.name,
+        profilePic: student.profilePic,
+        skills: student.skills,
+        badges: student.badges.map(b => b.badge),
+        similarity,
+        debug: {
+          studentSkills: student.skills,
+          jobSkills: job.requiredSkills,
+          hasAppliedBefore,
+          badgeCount: student.badges.length
+        }
+      };
+    });
+
+    // Filter out students with zero similarity and sort by similarity score
+    const filteredStudents = studentsWithScores
+      .filter(student => student.similarity.score >= minSimilarity)
+      .sort((a, b) => b.similarity.score - a.similarity.score)
+      .slice(0, limit);
+
+    res.json({
+      status: 'success',
+      data: filteredStudents,
+      meta: {
+        total: filteredStudents.length,
+        minSimilarity,
+        limit,
+        totalStudents: students.length,
+        jobSkills: job.requiredSkills
+      }
+    });
+  } catch (error) {
+    createError(res, 'Failed to get freelancer suggestions', 'GET_SUGGESTIONS_ERROR', 500);
+  }
 }; 

@@ -1,4 +1,4 @@
-import { PrismaClient, BadgeTier, WorkshopStatus, ProjectDifficulty, ProjectStatus, JobStatus, JobType } from '@prisma/client';
+import { PrismaClient, BadgeTier, WorkshopStatus, ProjectDifficulty, ProjectStatus, JobStatus, JobType, DisputeStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -417,6 +417,106 @@ async function main() {
       workshopId: workshops[0].id
     }
   });
+
+  // Create sample disputes
+  const disputeData = [
+    {
+      // Open dispute
+      reason: 'Work quality not meeting expectations',
+      evidence: 'Screenshots of incomplete work and communication logs',
+      status: DisputeStatus.OPEN,
+      raisedById: students[0].id,
+      contractId: (await prisma.contract.findFirst())?.id || '',
+      blockchainHash: 'hash-open-dispute-123'
+    },
+    {
+      // Responded dispute
+      reason: 'Payment not received for completed work',
+      evidence: 'Payment proof and contract terms',
+      response: 'Payment was delayed due to bank processing issues. Will be processed within 24 hours.',
+      status: DisputeStatus.RESPONDED,
+      raisedById: students[1].id,
+      respondedById: employers[0].id,
+      contractId: (await prisma.contract.findFirst())?.id || '',
+      blockchainHash: 'hash-responded-dispute-456'
+    },
+    {
+      // Resolved dispute
+      reason: 'Contract terms violation',
+      evidence: 'Contract document and violation proof',
+      response: 'The terms were unclear. We have updated our contract template.',
+      status: DisputeStatus.RESOLVED,
+      raisedById: students[2].id,
+      respondedById: employers[1].id,
+      contractId: (await prisma.contract.findFirst())?.id || '',
+      blockchainHash: 'hash-resolved-dispute-789'
+    }
+  ];
+
+  // Create disputes
+  const disputes = await Promise.all(
+    disputeData.map(dispute =>
+      prisma.dispute.create({
+        data: dispute
+      })
+    )
+  );
+
+  // Add votes to the responded dispute
+  await Promise.all([
+    prisma.vote.create({
+      data: {
+        disputeId: disputes[1].id,
+        voterId: admin.id,
+        votedForId: employers[0].id
+      }
+    }),
+    prisma.vote.create({
+      data: {
+        disputeId: disputes[1].id,
+        voterId: students[3].id,
+        votedForId: employers[0].id
+      }
+    }),
+    prisma.vote.create({
+      data: {
+        disputeId: disputes[1].id,
+        voterId: students[4].id,
+        votedForId: students[1].id
+      }
+    })
+  ]);
+
+  // Add resolution to the resolved dispute
+  await prisma.disputeResolution.create({
+    data: {
+      disputeId: disputes[2].id,
+      winnerId: employers[1].id,
+      resolverId: admin.id
+    }
+  });
+
+  // Add token rewards for the resolved dispute
+  await Promise.all([
+    // Reward for winner
+    prisma.tokenReward.create({
+      data: {
+        userId: employers[1].id,
+        amount: 100,
+        reason: 'Won dispute',
+        disputeId: disputes[2].id
+      }
+    }),
+    // Rewards for matching voters
+    prisma.tokenReward.create({
+      data: {
+        userId: admin.id,
+        amount: 10,
+        reason: 'Correct vote in dispute',
+        disputeId: disputes[2].id
+      }
+    })
+  ]);
 
   console.log('✅ Database seeded successfully!');
   console.log('\n🔐 Login Credentials:');
