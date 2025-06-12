@@ -2,6 +2,26 @@ import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 import { calculateSimilarityScore, sortBySimilarity } from '../utils/recommendation';
 
+// Add interfaces at the top of the file
+interface JobWithScore {
+  id: string;
+  requiredSkills: string[];
+  status: string;
+  applications: { id: string; status: string }[];
+  contracts: { id: string; status: string }[];
+  similarity: { score: number };
+}
+
+interface StudentWithScore {
+  id: string;
+  name: string;
+  profilePic: string | null;
+  skills: string[];
+  applications: { jobId: string; status: string }[];
+  badges: { badge: { tier: string } }[];
+  similarity: { score: number };
+}
+
 // Helper function to validate MongoDB ObjectId
 const isValidObjectId = (id: string): boolean => {
   return /^[0-9a-fA-F]{24}$/.test(id);
@@ -514,8 +534,8 @@ export const getJobSuggestions = async (req: Request, res: Response) => {
     });
 
     // Calculate similarity scores for each job
-    const jobsWithScores = jobs.map(job => {
-      const hasAppliedBefore = user.applications.some(app => app.jobId === job.id);
+    const jobsWithScores = jobs.map((job: JobWithScore) => {
+      const hasAppliedBefore = user.applications.some((app: { jobId: string }) => app.jobId === job.id);
       const similarity = calculateSimilarityScore(
         user.skills,
         job.requiredSkills,
@@ -533,15 +553,15 @@ export const getJobSuggestions = async (req: Request, res: Response) => {
           badgeCount: user.badges.length,
           status: job.status,
           applications: job.applications.length,
-          activeContracts: job.contracts.filter(c => c.status === 'ACTIVE').length
+          activeContracts: job.contracts.filter((c: { status: string }) => c.status === 'ACTIVE').length
         }
       };
     });
 
     // Filter out jobs with zero similarity and sort by similarity score
     const filteredJobs = jobsWithScores
-      .filter(job => job.similarity.score >= minSimilarity)
-      .sort((a, b) => b.similarity.score - a.similarity.score)
+      .filter((job: JobWithScore) => job.similarity.score >= minSimilarity)
+      .sort((a: JobWithScore, b: JobWithScore) => b.similarity.score - a.similarity.score)
       .slice(0, limit);
 
     res.json({
@@ -553,7 +573,7 @@ export const getJobSuggestions = async (req: Request, res: Response) => {
         limit,
         totalJobs: jobs.length,
         userSkills: user.skills,
-        userBadges: user.badges.map(b => b.badge.tier)
+        userBadges: user.badges.map((b: { badge: { tier: string } }) => b.badge.tier)
       }
     });
   } catch (error) {
@@ -936,6 +956,7 @@ export const getSuggestedFreelancers = async (req: Request, res: Response) => {
     });
 
     // Calculate similarity scores for each student
+
     const studentsWithScores = students.map(student => {
       const hasAppliedBefore = student.applications.some(app => app.jobId === id);
       const similarity = calculateSimilarityScore(
@@ -950,7 +971,7 @@ export const getSuggestedFreelancers = async (req: Request, res: Response) => {
         name: student.name,
         profilePic: student.profilePic,
         skills: student.skills,
-        badges: student.badges.map(b => b.badge),
+        badges: student.badges.map((b: { badge: { tier: string } }) => b.badge),
         similarity,
         debug: {
           studentSkills: student.skills,
@@ -963,8 +984,8 @@ export const getSuggestedFreelancers = async (req: Request, res: Response) => {
 
     // Filter out students with zero similarity and sort by similarity score
     const filteredStudents = studentsWithScores
-      .filter(student => student.similarity.score >= minSimilarity)
-      .sort((a, b) => b.similarity.score - a.similarity.score)
+      .filter((student: StudentWithScore) => student.similarity.score >= minSimilarity)
+      .sort((a: StudentWithScore, b: StudentWithScore) => b.similarity.score - a.similarity.score)
       .slice(0, limit);
 
     res.json({
@@ -980,5 +1001,92 @@ export const getSuggestedFreelancers = async (req: Request, res: Response) => {
     });
   } catch (error) {
     createError(res, 'Failed to get freelancer suggestions', 'GET_SUGGESTIONS_ERROR', 500);
+  }
+};
+
+// Mark job as completed
+export const markJobAsCompleted = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user.id;
+    const { completionNote } = req.body;
+
+    if (!isValidObjectId(id)) {
+      return createError(res, 'Invalid job ID format', 'INVALID_JOB_ID');
+    }
+
+    // Get job with its contracts
+    const job = await prisma.job.findUnique({
+      where: { id },
+      include: {
+        contracts: {
+          where: {
+            status: 'ACTIVE'
+          }
+        }
+      }
+    });
+
+    if (!job) {
+      return createError(res, 'Job not found', 'JOB_NOT_FOUND', 404);
+    }
+
+    // Check if user is either employer or student
+    const isEmployer = job.employerId === userId;
+    const isStudent = job.contracts.some((contract: { studentId: string }) => contract.studentId === userId);
+
+    if (!isEmployer && !isStudent) {
+      return createError(res, 'You are not authorized to mark this job as completed', 'UNAUTHORIZED', 403);
+    }
+
+    // Get the active contract
+    const activeContract = job.contracts[0];
+    if (!activeContract) {
+      return createError(res, 'No active contract found for this job', 'NO_ACTIVE_CONTRACT');
+    }
+
+    // Update contract status based on who is marking it complete
+    const updateData: any = {
+      completionNote: completionNote || null
+    };
+
+    if (isEmployer) {
+      updateData.employerCompleted = true;
+    } else {
+      updateData.studentCompleted = true;
+    }
+
+    // Update contract
+    const updatedContract = await prisma.contract.update({
+      where: { id: activeContract.id },
+      data: updateData
+    });
+
+    // If both parties have marked as complete, update job and contract status
+    if (updatedContract.employerCompleted && updatedContract.studentCompleted) {
+      await prisma.$transaction([
+        prisma.job.update({
+          where: { id },
+          data: { status: 'CLOSED' }
+        }),
+        prisma.contract.update({
+          where: { id: activeContract.id },
+          data: { 
+            status: 'COMPLETED',
+            completedAt: new Date()
+          }
+        })
+      ]);
+    }
+
+    res.json({
+      status: 'success',
+      message: isEmployer ? 
+        'Job marked as completed by employer. Waiting for student confirmation.' :
+        'Job marked as completed by student. Waiting for employer confirmation.',
+      data: updatedContract
+    });
+  } catch (error) {
+    createError(res, 'Failed to mark job as completed', 'COMPLETE_JOB_ERROR', 500);
   }
 }; 

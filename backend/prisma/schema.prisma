@@ -206,7 +206,10 @@ model Contract {
   status          ContractStatus @default(PENDING)
   createdAt       DateTime       @default(now())
   completedAt     DateTime?
-  disputes         Dispute[]
+  disputes        Dispute[]
+  employerCompleted Boolean      @default(false)
+  studentCompleted  Boolean      @default(false)
+  completionNote   String?
 
   @@index([studentId])
   @@index([employerId])

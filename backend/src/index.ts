@@ -4,6 +4,8 @@ import { errorHandler } from './middlewares/errorHandler';
 import routes from './routes';
 import prisma from './utils/prisma';
 import cookieParser from 'cookie-parser'
+import path from 'path';
+
 const app = express();
 
 // Middleware
@@ -28,6 +30,9 @@ app.use(
     },
   })
 );
+
+// Serve static files from public directory
+app.use('/public', express.static(path.join(__dirname, '../public')));
 
 // Routes
 app.use('/api', routes);

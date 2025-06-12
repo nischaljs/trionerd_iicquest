@@ -188,6 +188,9 @@ export const updateContractStatus = async (req: Request, res: Response) => {
 
     const contract = await prisma.contract.findUnique({
       where: { id },
+      include: {
+        job: true
+      }
     });
 
     if (!contract) {
@@ -198,22 +201,47 @@ export const updateContractStatus = async (req: Request, res: Response) => {
       return createErrorResponse(res, 403, 'Not authorized to update this contract');
     }
 
+    // Allow status update to DISPUTED at any time
+    if (status === 'DISPUTED') {
+      const updatedContract = await prisma.contract.update({
+        where: { id },
+        data: {
+          status: 'DISPUTED'
+        },
+        include: {
+          student: true,
+          employer: true,
+          job: true
+        }
+      });
+
+      return res.json({
+        status: 'success',
+        data: updatedContract
+      });
+    }
+
+    // For other status updates, check if contract is not disputed
+    if (contract.status === 'DISPUTED') {
+      return createErrorResponse(res, 400, 'Cannot update status of a disputed contract');
+    }
+
     const updatedContract = await prisma.contract.update({
       where: { id },
       data: {
         status: status as ContractStatus,
-        ...(status === 'COMPLETED' && { completedAt: new Date() }),
+        ...(status === 'COMPLETED' && { completedAt: new Date() })
       },
       include: {
         student: true,
         employer: true,
-        job: true,
-      },
+        job: true
+      }
     });
 
     return res.json({
       status: 'success',
-      data: updatedContract,
+      data: updatedContract
     });
   } catch (error) {
     console.error('Error updating contract status:', error);
