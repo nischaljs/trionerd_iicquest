@@ -9,16 +9,28 @@ const AuthContextProvider = ({ children }) => {
     JSON.parse(localStorage.getItem("user")) || null
   );
   const [fetchMessage, setFetchMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const login = async (inputs) => {
-    const res = await post("/api/users/login", inputs);
-    setCurrentUser(res.user);
-    return res;
-    // console.log(res);
+  const login = async (email, password) => {
+    try {
+      setLoading(true);
+      const response = await post("/api/users/login", { email, password });
+      if (response.token && response.user) {
+        // Store token in localStorage for client-side access
+        localStorage.setItem("token", response.token);
+        setCurrentUser(response.user);
+        setLoading(false);
+        return { success: true, user: response.user };
+      }
+    } catch (error) {
+      setLoading(false);
+      return { success: false, error: error.message || "Login failed" };
+    }
   };
 
   const logout = async () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     const res = await post("/api/logout");
     setFetchMessage(res.message);
     setCurrentUser(null);

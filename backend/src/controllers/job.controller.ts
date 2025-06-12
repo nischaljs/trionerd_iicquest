@@ -854,18 +854,18 @@ export const rejectJobInvite = async (req: Request, res: Response) => {
 // Get suggested freelancers for a job
 export const getSuggestedFreelancers = async (req: Request, res: Response) => {
   try {
-    const { jobId } = req.params;
+    const { id } = req.params;
     const employerId = (req as any).user.id;
     const limit = parseInt(req.query.limit as string) || 10;
     const minSimilarity = 0.01; // Lower threshold to 1% to ensure some recommendations
 
-    if (!isValidObjectId(jobId)) {
+    if (!isValidObjectId(id)) {
       return createError(res, 'Invalid job ID format', 'INVALID_JOB_ID');
     }
 
     // Check if job exists and belongs to employer
     const job = await prisma.job.findUnique({
-      where: { id: jobId },
+      where: { id },
       select: { 
         id: true,
         employerId: true,
@@ -898,7 +898,7 @@ export const getSuggestedFreelancers = async (req: Request, res: Response) => {
             {
               applications: {
                 some: {
-                  jobId,
+                  jobId: id,
                   status: 'ACCEPTED'
                 }
               }
@@ -906,7 +906,7 @@ export const getSuggestedFreelancers = async (req: Request, res: Response) => {
             {
               userContracts: {
                 some: {
-                  jobId,
+                  jobId: id,
                   status: 'ACTIVE'
                 }
               }
@@ -937,7 +937,7 @@ export const getSuggestedFreelancers = async (req: Request, res: Response) => {
 
     // Calculate similarity scores for each student
     const studentsWithScores = students.map(student => {
-      const hasAppliedBefore = student.applications.some(app => app.jobId === jobId);
+      const hasAppliedBefore = student.applications.some(app => app.jobId === id);
       const similarity = calculateSimilarityScore(
         student.skills,
         job.requiredSkills,
