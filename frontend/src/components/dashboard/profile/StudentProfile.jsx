@@ -85,198 +85,238 @@ const StudentProfile= () => {
   };
 
   return (
-    <div className="max-w-[1000px] mx-auto p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="bg-white rounded-2xl shadow-lg max-w-4xl w-full overflow-hidden">
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-6 border-b border-gray-100">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            {/* Profile Picture */}
-            <div className="relative">
-              <img
-                src={studentData.profilePicture}
-                alt={studentData.name}
-                className="w-24 h-24 rounded-full object-cover border-4 border-[#2A66DE] shadow-lg"
-              />
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
-            </div>
-
-            {/* Basic Info */}
-            <div className="flex-1 min-w-0">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{studentData.name}</h1>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
-                <div className="flex items-center text-gray-600">
-                  <Mail className="w-4 h-4 mr-2" />
-                  <span className="text-sm">{studentData.email}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  <span className="text-sm">{studentData.location}</span>
+        <div className="relative">
+          <div className="h-32 bg-gradient-to-r from-blue-500 to-blue-600"></div>
+          <div className="px-6 sm:px-8 pb-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-end -mt-16 mb-6 gap-6">
+              <div className="relative">
+                <img
+                  src="https://readdy.ai/api/search-image?query=professional%20portrait%20photo%20of%20a%20young%20student%20with%20a%20friendly%20smile%2C%20high%20quality%2C%20professional%20lighting%2C%20blue%20background%2C%20clean%20portrait%2C%20professional%20headshot%2C%20detailed%20facial%20features&width=200&height=200&seq=1&orientation=squarish"
+                  alt="Profile"
+                  className="w-32 h-32 rounded-full border-4 border-[#2A66DE] object-cover bg-white"
+                />
+                <div className="absolute bottom-0 right-0 bg-green-500 w-6 h-6 rounded-full border-4 border-white"></div>
+              </div>
+              <div className="flex-1">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full">
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-800">
+                      Aditya Sharma
+                    </h1>
+                    <p className="text-gray-500 text-sm">
+                      aditya.sharma@email.com
+                    </p>
+                  </div>
+                  <button className="mt-3 sm:mt-0 bg-[#2A66DE] text-white px-4 py-2 rounded-lg !rounded-button whitespace-nowrap hover:bg-blue-700 transition cursor-pointer flex items-center gap-2">
+                    <i className="fas fa-pen text-xs"></i>
+                    Edit Profile
+                  </button>
                 </div>
               </div>
-              <p className="text-gray-700 leading-relaxed mb-4">{studentData.bio}</p>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button className="flex items-center px-4 py-2 bg-[#2A66DE] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
-              </button>
-              <button className="flex items-center px-4 py-2 border border-[#2A66DE] text-[#2A66DE] rounded-lg hover:bg-blue-50 transition-colors duration-200">
-                <Eye className="w-4 h-4 mr-2" />
-                View Public
-              </button>
+            {/* Bio Section */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-2">Bio</h2>
+              <p className="text-gray-600 leading-relaxed">
+                Computer Science student at Delhi University with a passion for
+                AI and machine learning. I've been coding for 4 years and enjoy
+                participating in hackathons and tech workshops. Looking to
+                collaborate on innovative projects that make a difference.
+              </p>
             </div>
-          </div>
-        </div>
 
-        {/* Main Content Grid */}
-        <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column */}
-          <div className="lg:col-span-2 space-y-8">
             {/* Skills Section */}
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                <BookOpen className="w-5 h-5 mr-2 text-[#2A66DE]" />
-                Skills & Expertise
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                Skills
               </h2>
               <div className="flex flex-wrap gap-2">
-                {studentData.skills.map((skill, index) => (
+                {[
+                  "Python",
+                  "Machine Learning",
+                  "React",
+                  "Node.js",
+                  "Data Analysis",
+                  "UI/UX Design",
+                  "Project Management",
+                ].map((skill) => (
                   <span
-                    key={index}
-                    className="px-3 py-1 bg-blue-50 text-[#2A66DE] border border-[#2A66DE] rounded-full text-sm font-medium hover:bg-blue-100 transition-colors duration-200"
+                    key={skill}
+                    className="px-3 py-1 bg-blue-50 text-[#2A66DE] border border-[#2A66DE] rounded-full text-sm whitespace-nowrap cursor-pointer hover:bg-blue-100 transition"
                   >
                     {skill}
                   </span>
                 ))}
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Workshops Attended */}
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                <Calendar className="w-5 h-5 mr-2 text-[#2A66DE]" />
-                Workshops Attended ({studentData.workshopsAttended.count})
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {studentData.workshopsAttended.recent.map((workshop) => (
-                  <div
-                    key={workshop.id}
-                    className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
-                  >
-                    <img
-                      src={workshop.image}
-                      alt={workshop.title}
-                      className="w-full h-16 object-cover rounded mb-2"
-                    />
-                    <h4 className="font-medium text-gray-900 text-sm">{workshop.title}</h4>
-                  </div>
-                ))}
-              </div>
-              <button className="mt-4 text-[#2A66DE] hover:text-blue-700 font-medium text-sm">
-                View All Workshops →
-              </button>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-6 sm:px-8 mb-8">
+          {/* Reviews */}
+          <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center">
+            <div className="text-gray-500 mb-1 text-sm">Reviews Received</div>
+            <div className="flex items-center gap-1 mb-1">
+              <i className="fas fa-star text-yellow-400"></i>
+              <span className="font-bold text-xl">4.8</span>
             </div>
+            <div className="text-sm text-gray-500">from 24 reviews</div>
+          </div>
 
-            {/* Applications */}
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                <Users className="w-5 h-5 mr-2 text-[#2A66DE]" />
-                Recent Applications
-              </h2>
-              <div className="space-y-3">
-                {studentData.applications.map((app) => (
-                  <div key={app.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors duration-200">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{app.title}</h4>
-                      <p className="text-sm text-gray-600">{app.company}</p>
-                    </div>
-                    <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(app.status)}`}>
-                      {getStatusIcon(app.status)}
-                      {app.status}
-                    </div>
-                  </div>
-                ))}
+          {/* Workshops Attended */}
+          <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center">
+            <div className="text-gray-500 mb-1 text-sm">Workshops Attended</div>
+            <div className="font-bold text-xl mb-1">12</div>
+            <div className="flex gap-1">
+              <img
+                src="https://readdy.ai/api/search-image?query=tech%20workshop%20with%20students%20learning%20coding%2C%20professional%20setting%2C%20blue%20theme%2C%20educational%20environment%2C%20clean%20modern%20classroom&width=40&height=40&seq=2&orientation=squarish"
+                alt="Workshop"
+                className="w-8 h-8 rounded-md object-cover"
+              />
+              <img
+                src="https://readdy.ai/api/search-image?query=data%20science%20workshop%20with%20students%20analyzing%20data%2C%20professional%20setting%2C%20blue%20theme%2C%20educational%20environment%2C%20clean%20modern%20classroom&width=40&height=40&seq=3&orientation=squarish"
+                alt="Workshop"
+                className="w-8 h-8 rounded-md object-cover"
+              />
+              <img
+                src="https://readdy.ai/api/search-image?query=AI%20workshop%20with%20students%20working%20on%20machine%20learning%2C%20professional%20setting%2C%20blue%20theme%2C%20educational%20environment%2C%20clean%20modern%20classroom&width=40&height=40&seq=4&orientation=squarish"
+                alt="Workshop"
+                className="w-8 h-8 rounded-md object-cover"
+              />
+              <div className="w-8 h-8 rounded-md bg-gray-200 flex items-center justify-center text-xs text-gray-600 font-medium">
+                +9
               </div>
             </div>
           </div>
 
-          {/* Right Column */}
-          <div className="space-y-8">
-            {/* Badges */}
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                <Award className="w-5 h-5 mr-2 text-[#2A66DE]" />
-                Achievements
-              </h2>
-              <div className="space-y-3">
-                {studentData.badges.map((badge) => (
-                  <div
-                    key={badge.id}
-                    className="relative flex items-center p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100 cursor-pointer hover:shadow-md transition-shadow duration-200"
-                    onMouseEnter={() => setActiveTooltip(badge.id)}
-                    onMouseLeave={() => setActiveTooltip(null)}
-                  >
-                    <span className="text-2xl mr-3">{badge.icon}</span>
-                    <span className="font-medium text-gray-900">{badge.name}</span>
-                    
-                    {/* Tooltip */}
-                    {activeTooltip === badge.id && (
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap z-10">
-                        {badge.description}
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+          {/* Workshops Hosted */}
+          <div className="bg-gray-50 rounded-xl p-4 flex flex-col items-center">
+            <div className="text-gray-500 mb-1 text-sm">Workshops Hosted</div>
+            <div className="font-bold text-xl mb-1">3</div>
+            <div className="flex items-center gap-1 text-sm">
+              <i className="fas fa-star text-yellow-400 text-xs"></i>
+              <span className="text-gray-500">4.9 avg rating</span>
             </div>
-
-            {/* Reviews */}
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                <Star className="w-5 h-5 mr-2 text-[#2A66DE]" />
-                Reviews
-              </h2>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900 mb-2">
-                  {studentData.reviews.average}
-                </div>
-                <div className="flex justify-center mb-2">
-                  {renderStars(studentData.reviews.average)}
-                </div>
-                <p className="text-sm text-gray-600">
-                  Based on {studentData.reviews.count} reviews
-                </p>
-              </div>
-            </div>
-
-            {/* Workshop Host Stats */}
-            {studentData.workshopsHosted.isEligibleHost && (
-              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-6 border border-yellow-200">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                  <Users className="w-5 h-5 mr-2 text-[#2A66DE]" />
-                  Workshop Host
-                  <span className="ml-2 px-2 py-1 bg-yellow-200 text-yellow-800 text-xs rounded-full font-medium">
-                    Certified
-                  </span>
-                </h2>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Workshops Hosted</span>
-                    <span className="font-semibold">{studentData.workshopsHosted.count}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Host Rating</span>
-                    <div className="flex items-center">
-                      <span className="font-semibold mr-1">{studentData.workshopsHosted.rating}</span>
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
+        </div>
+
+        {/* Badges Section */}
+        <div className="px-6 sm:px-8 mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Badges & Achievements
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              {
+                name: "Guru",
+                icon: "fa-award",
+                description: "Recognized for exceptional teaching abilities",
+              },
+              {
+                name: "Acharya",
+                icon: "fa-graduation-cap",
+                description: "Demonstrated academic excellence",
+              },
+              {
+                name: "Shiksharthi",
+                icon: "fa-book",
+                description: "Dedicated lifelong learner",
+              },
+              {
+                name: "Utsaahi Intern",
+                icon: "fa-briefcase",
+                description: "Enthusiastic intern with outstanding performance",
+              },
+            ].map((badge) => (
+              <div
+                key={badge.name}
+                className="bg-blue-50 rounded-lg p-4 flex flex-col items-center group relative cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-[#2A66DE] mb-2">
+                  <i className={`fas ${badge.icon} text-xl`}></i>
+                </div>
+                <div className="font-medium text-gray-800">{badge.name}</div>
+                <div className="absolute invisible group-hover:visible bg-gray-800 text-white text-xs rounded py-1 px-2 bottom-full mb-2 w-full max-w-[200px] opacity-0 group-hover:opacity-100 transition-opacity">
+                  {badge.description}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Applications Section */}
+        <div className="px-6 sm:px-8 mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Recent Applications
+          </h2>
+          <div className="bg-gray-50 rounded-xl overflow-hidden">
+            {[
+              {
+                title: "Machine Learning Intern",
+                company: "TechCorp",
+                status: "Accepted",
+                date: "June 5, 2025",
+              },
+              {
+                title: "Data Science Workshop Host",
+                company: "ChalkBox",
+                status: "Pending",
+                date: "June 8, 2025",
+              },
+              {
+                title: "Frontend Developer",
+                company: "WebSolutions",
+                status: "Rejected",
+                date: "May 28, 2025",
+              },
+            ].map((application, index) => (
+              <div
+                key={index}
+                className={`p-4 flex justify-between items-center ${index % 2 === 0 ? "bg-white" : ""}`}
+              >
+                <div>
+                  <div className="font-medium text-gray-800">
+                    {application.title}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {application.company} • {application.date}
+                  </div>
+                </div>
+                <div
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    application.status === "Accepted"
+                      ? "bg-green-100 text-green-800"
+                      : application.status === "Pending"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {application.status}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="px-6 sm:px-8 pb-8 flex flex-wrap gap-3">
+          <button className="bg-[#2A66DE] text-white px-4 py-2 rounded-lg !rounded-button whitespace-nowrap hover:bg-blue-700 transition cursor-pointer flex items-center gap-2">
+            <i className="fas fa-chalkboard-teacher"></i>
+            View Workshops
+          </button>
+          <button className="border border-[#2A66DE] text-[#2A66DE] px-4 py-2 rounded-lg !rounded-button whitespace-nowrap hover:bg-blue-50 transition cursor-pointer flex items-center gap-2">
+            <i className="fas fa-certificate"></i>
+            View Certificates
+          </button>
+          <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg !rounded-button whitespace-nowrap hover:bg-gray-50 transition cursor-pointer flex items-center gap-2">
+            <i className="fas fa-share-alt"></i>
+            Share Profile
+          </button>
         </div>
       </div>
     </div>

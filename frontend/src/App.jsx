@@ -9,6 +9,12 @@ import LoginForm from "./components/form/LoginForm";
 import StudentProfile from "./components/dashboard/profile/StudentProfile";
 import OpenSourceProjectsFeed from "./components/dashboard/forum/OpenSourceProjectsFeed";
 import FreelanceProjectFeed from "./components/dashboard/freelance/FreelanceProjectFeed";
+import ChalkBoxEmployerDashboard from "./components/edasboard/ChalkBoxEmployerDashboard";
+import EDashboard from "./components/edasboard/EDashboard";
+import JobPostingForm from "./components/edasboard/FreelanceProjectForm ";
+import Collaboration from "./components/edasboard/Collaboration";
+import FreelanceProjectForm from "./components/edasboard/FreelanceProjectForm ";
+
 
 const App = () => {
   const router = createBrowserRouter([
@@ -20,6 +26,26 @@ const App = () => {
       path: "/login",
       element: <LoginForm />,
     },
+    {
+      path:"/employer-dashboard",
+      element:<ChalkBoxEmployerDashboard />,
+      children: [
+        {
+          path: "",
+          element: <EDashboard />,
+        },
+        {
+          path: "/employer-dashboard/post-open-source-project",
+          element: <Collaboration />
+        },
+        {
+          path: "/employer-dashboard/post-freelance-project",
+          element: <FreelanceProjectForm />,
+        }
+      ],
+
+    },
+
 
     {
       path: "/dashboard",
