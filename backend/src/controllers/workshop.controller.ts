@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { calculateSimilarityScore, sortBySimilarity } from '../utils/recommendation';
 
 // Helper function to validate MongoDB ObjectId
 const isValidObjectId = (id: string): boolean => {
@@ -135,8 +136,20 @@ export const getWorkshopById = async (req: Request, res: Response) => {
 // Create new workshop
 export const createWorkshop = async (req: Request, res: Response) => {
   try {
-    const { title, description, zoomLink, price, skillsTaught } = req.body;
+    const { title, description, zoomLink, price, skillsTaught, startDate, endDate } = req.body;
     const hostId = (req as any).user.id; // From auth middleware
+
+    // Validate dates
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const now = new Date();
+
+    if (start < now) {
+      return res.status(400).json({ message: 'Start date must be in the future' });
+    }
+    if (end <= start) {
+      return res.status(400).json({ message: 'End date must be after start date' });
+    }
 
     const workshop = await prisma.workshop.create({
       data: {
@@ -145,7 +158,10 @@ export const createWorkshop = async (req: Request, res: Response) => {
         zoomLink,
         price: parseFloat(price),
         skillsTaught,
-        hostId
+        hostId,
+        startDate: start,
+        endDate: end,
+        status: 'UPCOMING'
       }
     });
 
@@ -159,7 +175,7 @@ export const createWorkshop = async (req: Request, res: Response) => {
 export const updateWorkshop = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, zoomLink, price, skillsTaught } = req.body;
+    const { title, description, zoomLink, price, skillsTaught, startDate, endDate, status } = req.body;
     const userId = (req as any).user.id;
 
     if (!isValidObjectId(id)) {
@@ -169,7 +185,7 @@ export const updateWorkshop = async (req: Request, res: Response) => {
     // Check if user is the host
     const workshop = await prisma.workshop.findUnique({
       where: { id },
-      select: { hostId: true }
+      select: { hostId: true, status: true }
     });
 
     if (!workshop) {
@@ -180,6 +196,28 @@ export const updateWorkshop = async (req: Request, res: Response) => {
       return res.status(403).json({ message: 'Not authorized to update this workshop' });
     }
 
+    // Validate status transition
+    if (status && status !== workshop.status) {
+      if (!['UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED'].includes(status)) {
+        return res.status(400).json({ message: 'Invalid workshop status' });
+      }
+    }
+
+    // Validate dates if provided
+    let start, end;
+    if (startDate) {
+      start = new Date(startDate);
+      if (start < new Date()) {
+        return res.status(400).json({ message: 'Start date must be in the future' });
+      }
+    }
+    if (endDate) {
+      end = new Date(endDate);
+      if (start && end <= start) {
+        return res.status(400).json({ message: 'End date must be after start date' });
+      }
+    }
+
     const updatedWorkshop = await prisma.workshop.update({
       where: { id },
       data: {
@@ -187,7 +225,10 @@ export const updateWorkshop = async (req: Request, res: Response) => {
         description,
         zoomLink,
         price: price ? parseFloat(price) : undefined,
-        skillsTaught
+        skillsTaught,
+        startDate: start,
+        endDate: end,
+        status
       }
     });
 
@@ -391,6 +432,11 @@ export const addWorkshopReview = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Workshop not found' });
     }
 
+    // Check if workshop is upcoming
+    if (workshop.status === 'UPCOMING') {
+      return res.status(400).json({ message: 'Cannot review upcoming workshops' });
+    }
+
     // Check if user has attended the workshop
     const attendance = await prisma.userWorkshop.findFirst({
       where: {
@@ -475,12 +521,18 @@ export const addWorkshopReview = async (req: Request, res: Response) => {
 export const getWorkshopSuggestions = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const minSimilarity = 0.01; // Lower threshold to 1% to ensure some recommendations
 
-    // Get user's skills and attended workshops
+    // Get user with skills and badges
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        skills: true,
+      include: {
+        badges: {
+          include: {
+            badge: true
+          }
+        },
         workshopsAttended: {
           select: {
             workshopId: true
@@ -493,14 +545,14 @@ export const getWorkshopSuggestions = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Find workshops matching user's skills that they haven't attended
-    const suggestedWorkshops = await prisma.workshop.findMany({
+    // Get all upcoming and ongoing workshops
+    const workshops = await prisma.workshop.findMany({
       where: {
-        skillsTaught: {
-          hasSome: user.skills
+        status: {
+          in: ['UPCOMING', 'ONGOING']
         },
-        id: {
-          notIn: user.workshopsAttended.map(w => w.workshopId)
+        endDate: {
+          gt: new Date() // Only get workshops that haven't ended
         }
       },
       include: {
@@ -516,36 +568,75 @@ export const getWorkshopSuggestions = async (req: Request, res: Response) => {
             }
           }
         },
-        reviews: true,
-        _count: {
-          select: {
-            attendees: true
-          }
-        }
-      },
-      orderBy: {
         attendees: {
-          _count: 'desc'
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                profilePic: true
+              }
+            }
         }
       },
-      take: 5
+        reviews: true
+      }
     });
 
-    // Calculate average ratings
-    const workshopsWithRatings = suggestedWorkshops.map(workshop => {
+    // Calculate similarity scores for each workshop
+    const workshopsWithScores = workshops.map(workshop => {
+      const hasAttendedBefore = user.workshopsAttended.some(
+        attended => attended.workshopId === workshop.id
+      );
+      
+      const similarity = calculateSimilarityScore(
+        user.skills,
+        workshop.skillsTaught,
+        user.badges,
+        hasAttendedBefore
+      );
+
+      // Calculate average rating
       const avgRating = workshop.reviews.length > 0
         ? workshop.reviews.reduce((sum, review) => sum + review.rating, 0) / workshop.reviews.length
         : 0;
+
       return {
         ...workshop,
         avgRating,
-        attendeesCount: workshop._count.attendees
+        similarity,
+        debug: {
+          userSkills: user.skills,
+          workshopSkills: workshop.skillsTaught,
+          hasAttendedBefore,
+          badgeCount: user.badges.length,
+          status: workshop.status,
+          startDate: workshop.startDate,
+          endDate: workshop.endDate
+        }
       };
     });
 
-    res.json(workshopsWithRatings);
+    // Filter out workshops with zero similarity and sort by similarity score
+    const filteredWorkshops = workshopsWithScores
+      .filter(workshop => workshop.similarity.score >= minSimilarity)
+      .sort((a, b) => b.similarity.score - a.similarity.score)
+      .slice(0, limit);
+
+    res.json({
+      status: 'success',
+      data: filteredWorkshops,
+      meta: {
+        total: filteredWorkshops.length,
+        minSimilarity,
+        limit,
+        totalWorkshops: workshops.length,
+        userSkills: user.skills,
+        userBadges: user.badges.map(b => b.badge.tier)
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error getting suggestions', error });
+    res.status(500).json({ message: 'Error getting workshop suggestions', error });
   }
 };
 

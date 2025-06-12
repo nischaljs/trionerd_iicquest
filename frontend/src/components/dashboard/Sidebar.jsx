@@ -18,25 +18,45 @@ import {
   Plus,
   Eye,
 } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
-const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
+const Sidebar = ({ isOpen, onClose, isMobile }) => {
+  const location = useLocation();
   const [workshopsExpanded, setWorkshopsExpanded] = useState(false);
+
+  // Get the current path and remove leading/trailing slashes
+  const currentPath = location.pathname.replace(/^\/|\/$/g, "");
+
+  // Auto-expand workshops if one of its sub-items is active
+  React.useEffect(() => {
+    const isWorkshopSubItemActive = menuItems
+      .find((item) => item.id === "workshops")
+      ?.subItems?.some(
+        (subItem) =>
+          currentPath === `dashboard/${subItem.id}` ||
+          currentPath === subItem.id
+      );
+
+    if (isWorkshopSubItemActive) {
+      setWorkshopsExpanded(true);
+    }
+  }, [currentPath]);
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: Home },
-    { 
-      id: "workshops", 
-      label: "Workshops", 
+    {
+      id: "workshops",
+      label: "Workshops",
       icon: BookOpen,
       hasDropdown: true,
       subItems: [
         { id: "my-workshops", label: "My Workshops" },
-        { id: "join-workshop", label: "Join Workshop" }
-      ]
+        { id: "join-workshops", label: "Join Workshop" },
+      ],
     },
-    { id: "jobs", label: "Job Board", icon: Briefcase },
-    { id: "badges", label: "Badges", icon: Award },
-    { id: "profile", label: "Profile", icon: User },
+    { id: "dashboard/collaborate", label: "Collaborate", icon: Users },
+    { id: "dashboard/freelance-feed", label: "Freelance", icon: Star },
+    { id: "dashboard/profile", label: "Profile", icon: User },
   ];
 
   const handleWorkshopsClick = () => {
@@ -66,8 +86,15 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
         <nav className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeRoute === item.id;
-            const isSubItemActive = item.subItems?.some(subItem => activeRoute === subItem.id);
+            // Check if current path matches the item id or starts with it
+            const isActive =
+              currentPath === item.id ||
+              (item.id !== "dashboard" && currentPath.startsWith(item.id));
+            const isSubItemActive = item.subItems?.some(
+              (subItem) =>
+                currentPath === `dashboard/${subItem.id}` ||
+                currentPath === subItem.id
+            );
 
             return (
               <div key={item.id}>
@@ -92,8 +119,8 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
                     )}
                   </button>
                 ) : (
-                  <a
-                    href="#"
+                  <Link
+                    to={`/${item.id}`}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                       isActive
                         ? "bg-blue-600 text-white shadow-lg"
@@ -102,18 +129,20 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
                   >
                     <Icon className="w-5 h-5" />
                     <span className="font-medium">{item.label}</span>
-                  </a>
+                  </Link>
                 )}
 
                 {/* Dropdown Sub-items */}
                 {item.hasDropdown && workshopsExpanded && (
                   <div className="ml-4 mt-2 space-y-1">
                     {item.subItems.map((subItem) => {
-                      const isSubActive = activeRoute === subItem.id;
+                      const isSubActive =
+                        currentPath === `dashboard/${subItem.id}` ||
+                        currentPath === subItem.id;
                       return (
-                        <a
+                        <Link
                           key={subItem.id}
-                          href="#"
+                          to={`/dashboard/${subItem.id}`}
                           className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 ${
                             isSubActive
                               ? "bg-blue-100 text-blue-700 font-medium"
@@ -122,7 +151,7 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
                         >
                           <div className="w-2 h-2 rounded-full bg-current opacity-50"></div>
                           <span className="text-sm">{subItem.label}</span>
-                        </a>
+                        </Link>
                       );
                     })}
                   </div>
@@ -151,10 +180,7 @@ const Sidebar = ({ isOpen, onClose, isMobile, activeRoute = "dashboard" }) => {
       <>
         {/* Overlay */}
         {isOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={onClose}
-          />
+          <div className="fixed inset-0 bg-black/70 z-40" onClick={onClose} />
         )}
 
         {/* Mobile Sidebar */}
