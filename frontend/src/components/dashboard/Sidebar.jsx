@@ -23,6 +23,7 @@ import { Link, useLocation } from "react-router-dom";
 const Sidebar = ({ isOpen, onClose, isMobile }) => {
   const location = useLocation();
   const [workshopsExpanded, setWorkshopsExpanded] = useState(false);
+  const [freelanceExpanded, setFreelanceExpanded] = useState(false);
 
   // Get the current path and remove leading/trailing slashes
   const currentPath = location.pathname.replace(/^\/|\/$/g, "");
@@ -40,6 +41,19 @@ const Sidebar = ({ isOpen, onClose, isMobile }) => {
     if (isWorkshopSubItemActive) {
       setWorkshopsExpanded(true);
     }
+
+    // Auto-expand freelance if one of its sub-items is active
+    const isFreelanceSubItemActive = menuItems
+      .find((item) => item.id === "dashboard/freelance-feed")
+      ?.subItems?.some(
+        (subItem) =>
+          currentPath === `dashboard/${subItem.id}` ||
+          currentPath === subItem.id
+      );
+
+    if (isFreelanceSubItemActive) {
+      setFreelanceExpanded(true);
+    }
   }, [currentPath]);
 
   const menuItems = [
@@ -56,12 +70,25 @@ const Sidebar = ({ isOpen, onClose, isMobile }) => {
       ],
     },
     { id: "dashboard/collaborate", label: "Collaborate", icon: Users },
-    { id: "dashboard/freelance-feed", label: "Freelance", icon: Star },
+    {
+      id: "dashboard/freelance-feed",
+      label: "Freelance",
+      icon: Star,
+      hasDropdown: true,
+      subItems: [
+        { id: "post", label: "Post" },
+        { id: "invite", label: "Invite" },
+      ],
+    },
     { id: "dashboard/profile", label: "Profile", icon: User },
   ];
 
   const handleWorkshopsClick = () => {
     setWorkshopsExpanded(!workshopsExpanded);
+  };
+
+  const handleFreelanceClick = () => {
+    setFreelanceExpanded(!freelanceExpanded);
   };
 
   const SidebarContent = () => (
@@ -102,7 +129,13 @@ const Sidebar = ({ isOpen, onClose, isMobile }) => {
                 {/* Main Menu Item */}
                 {item.hasDropdown ? (
                   <button
-                    onClick={handleWorkshopsClick}
+                    onClick={
+                      item.id === "workshops"
+                        ? handleWorkshopsClick
+                        : item.id === "dashboard/freelance-feed"
+                        ? handleFreelanceClick
+                        : undefined
+                    }
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
                       isActive || isSubItemActive
                         ? "bg-blue-600 text-white shadow-lg"
@@ -113,7 +146,8 @@ const Sidebar = ({ isOpen, onClose, isMobile }) => {
                       <Icon className="w-5 h-5" />
                       <span className="font-medium">{item.label}</span>
                     </div>
-                    {workshopsExpanded ? (
+                    {(item.id === "workshops" && workshopsExpanded) ||
+                    (item.id === "dashboard/freelance-feed" && freelanceExpanded) ? (
                       <ChevronDown className="w-4 h-4" />
                     ) : (
                       <ChevronRight className="w-4 h-4" />
@@ -134,16 +168,28 @@ const Sidebar = ({ isOpen, onClose, isMobile }) => {
                 )}
 
                 {/* Dropdown Sub-items */}
-                {item.hasDropdown && workshopsExpanded && (
+                {item.hasDropdown && 
+                 ((item.id === "workshops" && workshopsExpanded) ||
+                  (item.id === "dashboard/freelance-feed" && freelanceExpanded)) && (
                   <div className="ml-4 mt-2 space-y-1">
                     {item.subItems.map((subItem) => {
                       const isSubActive =
                         currentPath === `dashboard/${subItem.id}` ||
-                        currentPath === subItem.id;
+                        currentPath === subItem.id ||
+                        (item.id === "dashboard/freelance-feed" && 
+                         (currentPath === `dashboard/freelance-feed/${subItem.id}` ||
+                          currentPath === `freelance-feed/${subItem.id}`));
+                      
+                      const linkPath = item.id === "workshops" 
+                        ? `/dashboard/${subItem.id}`
+                        : subItem.id === "post" 
+                        ? `/dashboard/freelance-feed`
+                        : `/dashboard/freelance-feed/${subItem.id}`;
+                      
                       return (
                         <Link
                           key={subItem.id}
-                          to={`/dashboard/${subItem.id}`}
+                          to={linkPath}
                           className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 ${
                             isSubActive
                               ? "bg-blue-100 text-blue-700 font-medium"
