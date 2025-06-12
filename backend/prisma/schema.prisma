@@ -21,6 +21,7 @@ model User {
   workshopsHosted   Workshop[]     @relation("HostedWorkshops")
   workshopsAttended UserWorkshop[]
   jobPosts          Job[]          @relation("EmployerJobs")
+  openSourceProjects OpenSourceProject[] @relation("EmployerOpenSourceProjects")
   applications      Application[]  @relation("StudentApplications")
   userContracts     Contract[]     @relation("UserContracts")
   employerContracts Contract[]     @relation("EmployerContracts")
@@ -61,13 +62,12 @@ enum UserRole {
 
 model Badge {
   id          String      @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
+  name        String      @unique
   description String?
   iconUrl     String?
   tier        BadgeTier
   users       UserBadge[]
 
-  @@index([name])
   @@index([tier])
 }
 
@@ -97,6 +97,7 @@ model Job {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  @@unique([title, employerId])
   @@index([employerId])
   @@index([status])
   @@index([type])
@@ -118,6 +119,7 @@ model Application {
   status    AppStatus @default(PENDING)
   createdAt DateTime  @default(now())
 
+  @@unique([jobId, studentId])
   @@index([jobId])
   @@index([studentId])
   @@index([status])
@@ -162,17 +164,19 @@ enum WorkshopStatus {
 }
 
 model Contract {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  student       User           @relation("UserContracts", fields: [studentId], references: [id])
-  studentId     String         @db.ObjectId
-  employer      User           @relation("EmployerContracts", fields: [employerId], references: [id])
-  employerId    String         @db.ObjectId
-  job           Job            @relation(fields: [jobId], references: [id])
-  jobId         String         @db.ObjectId
-  agreementHash String
-  status        ContractStatus @default(PENDING)
-  createdAt     DateTime       @default(now())
-  completedAt   DateTime?
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  student         User           @relation("UserContracts", fields: [studentId], references: [id])
+  studentId       String         @db.ObjectId
+  employer        User           @relation("EmployerContracts", fields: [employerId], references: [id])
+  employerId      String         @db.ObjectId
+  job             Job            @relation(fields: [jobId], references: [id])
+  jobId           String         @db.ObjectId
+  agreementHash   String
+  blockchainHash  String?        // The SHA-256 hash of the agreement document
+  transactionHash String?        // The blockchain transaction hash
+  status          ContractStatus @default(PENDING)
+  createdAt       DateTime       @default(now())
+  completedAt     DateTime?
 
   @@index([studentId])
   @@index([employerId])
@@ -207,4 +211,39 @@ enum ContractStatus {
   ACTIVE
   COMPLETED
   DISPUTED
+}
+
+model OpenSourceProject {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  title                 String
+  description           String
+  fullDescription       String
+  techStack            String[]
+  difficulty           String    // Changed from ProjectDifficulty to String
+  goals                String[]
+  githubUrl            String
+  hiringLabel          String?
+  contributionGuidelines String
+  goodFirstIssues      String[]
+  employerId           String   @db.ObjectId
+  employer             User     @relation("EmployerOpenSourceProjects", fields: [employerId], references: [id])
+  status               ProjectStatus @default(OPEN)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([employerId])
+  @@index([status])
+  @@index([difficulty])
+}
+
+enum ProjectStatus {
+  OPEN
+  CLOSED
+  DRAFT
+}
+
+enum ProjectDifficulty {
+  EASY
+  INTERMEDIATE
+  ADVANCED
 }
