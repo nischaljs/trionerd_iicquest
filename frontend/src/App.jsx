@@ -17,6 +17,7 @@ import FreelanceProjectForm from "./components/edasboard/FreelanceProjectForm ";
 import EmployerJobDashboard from "./components/edasboard/EmployerJobDashboard";
 import OpenSourceContributions from "./components/edasboard/OpenSourceContributions";
 import CompanyProfile from "./components/edasboard/CompanyProfile";
+import ProposalInvitationsPanel from "./components/dashboard/freelance/ProposalInvitationsPanel";
 
 const App = () => {
   const router = createBrowserRouter([
@@ -87,6 +88,10 @@ const App = () => {
           path: "/dashboard/freelance-feed",
           element: <FreelanceProjectFeed />,
         },
+        {
+          path:"/dashboard/freelance-feed/invite",
+          element:<ProposalInvitationsPanel />
+        }
       ],
     },
   ]);
